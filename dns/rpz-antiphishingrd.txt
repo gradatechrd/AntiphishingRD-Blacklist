@@ -1,7 +1,8 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1788975058 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1788984891 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automáticamente por AntiPhishingRD (2026-09-09T17:30:58.190Z) — no editar a mano
+; Zona RPZ generada automáticamente por AntiPhishingRD (2026-09-09T20:14:51.636Z) — no editar a mano
 activar588.royalwebhosting.net CNAME .
 allegrolokalnie.nr-327439sm32.lol CNAME .
+allegrolokalnie.pl74646.top CNAME .
 www.abelmomaroc.com CNAME .
