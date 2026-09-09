@@ -1,5 +1,6 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1788963768 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1788968935 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automáticamente por AntiPhishingRD (2026-09-09T14:22:48.372Z) — no editar a mano
+; Zona RPZ generada automáticamente por AntiPhishingRD (2026-09-09T15:48:55.192Z) — no editar a mano
+activar588.royalwebhosting.net CNAME .
 allegrolokalnie.nr-327439sm32.lol CNAME .

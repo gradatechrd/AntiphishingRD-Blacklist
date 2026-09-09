@@ -1,2 +1,3 @@
-# Alias de dominios bloqueados — pfSense / OPNsense / pfBlockerNG (2026-09-09T14:22:48.372Z)
+# Alias de dominios bloqueados — pfSense / OPNsense / pfBlockerNG (2026-09-09T15:48:55.192Z)
+activar588.royalwebhosting.net
 allegrolokalnie.nr-327439sm32.lol
