@@ -1,3 +1,4 @@
-# Alias de dominios bloqueados — pfSense / OPNsense / pfBlockerNG (2026-09-09T15:48:55.192Z)
+# Alias de dominios bloqueados — pfSense / OPNsense / pfBlockerNG (2026-09-09T17:30:58.190Z)
 activar588.royalwebhosting.net
 allegrolokalnie.nr-327439sm32.lol
+www.abelmomaroc.com
