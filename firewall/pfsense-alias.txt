@@ -1,0 +1,2 @@
+# Alias de dominios bloqueados — pfSense / OPNsense / pfBlockerNG (2026-09-09T14:22:48.372Z)
+allegrolokalnie.nr-327439sm32.lol
