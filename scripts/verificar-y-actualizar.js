@@ -53,6 +53,24 @@ function esDominioDeConfianza(domain){
   return TRUSTED_DOMAINS.find(d => domain === d || domain.endsWith('.' + d)) || null;
 }
 
+// Plataformas de hosting/CDN compartido: si algo malicioso aparece bajo uno
+// de estos dominios, nunca se bloquea el dominio completo (rompería el
+// servicio para todo el mundo) — solo la URL exacta. Mantén esta lista
+// igual a SHARED_HOSTING_DOMAINS en checker.js y server.js.
+const SHARED_HOSTING_DOMAINS = [
+  'cloudinary.com', 'imgur.com', 'ibb.co', 'postimg.cc',
+  'discord.com', 'discordapp.com', 'cdn.discordapp.com', 'media.discordapp.net',
+  'telegra.ph', 'pastebin.com',
+  'github.io', 'githubusercontent.com',
+  'amazonaws.com', 'azurewebsites.net', 'herokuapp.com', 'netlify.app', 'vercel.app', 'firebaseapp.com', 'web.app',
+  'blogspot.com', 'weebly.com', 'wixsite.com', 'glitch.me', 'repl.co',
+  'ngrok.io', 'ngrok-free.app', 'ngrok.app',
+  'dropboxusercontent.com', 'googleusercontent.com'
+];
+function esHostingCompartido(domain){
+  return SHARED_HOSTING_DOMAINS.find(d => domain === d || domain.endsWith('.' + d)) || null;
+}
+
 function ghHeaders(){
   return {
     'Authorization': `Bearer ${GITHUB_TOKEN}`,
@@ -91,6 +109,15 @@ function extraerDominio(body){
   return m[1].trim().toLowerCase().replace(/[.,;]+$/,'');
 }
 
+function extraerUrlCompleta(body){
+  const m = /URL analizada:\s*([^\s]+)/i.exec(body || '');
+  return m ? m[1].trim() : null;
+}
+
+function esSoloUrl(body){
+  return /Alcance del bloqueo:\s*solo-url/i.test(body || '');
+}
+
 // ---------------- VirusTotal ----------------
 async function consultarVirusTotal(domain){
   if(!VT_KEY) return {disponible:false};
@@ -121,13 +148,13 @@ async function buscarUrlscanExistente(domain){
   }catch(e){ return null; }
 }
 
-async function enviarNuevoUrlscan(domain){
+async function enviarNuevoUrlscan(domain, urlCompleta){
   if(!URLSCAN_KEY) return null;
   try{
     const submit = await fetch('https://urlscan.io/api/v1/scan/', {
       method:'POST',
       headers:{'API-Key': URLSCAN_KEY, 'Content-Type':'application/json'},
-      body: JSON.stringify({url: `http://${domain}`, visibility:'public'})
+      body: JSON.stringify({url: urlCompleta || `http://${domain}`, visibility:'public'})
     });
     if(!submit.ok) return null;
     const { api } = await submit.json();
@@ -142,9 +169,12 @@ async function enviarNuevoUrlscan(domain){
   }catch(e){ return null; }
 }
 
-async function consultarUrlscan(domain){
-  let resultado = await buscarUrlscanExistente(domain);
-  if(!resultado) resultado = await enviarNuevoUrlscan(domain);
+async function consultarUrlscan(domain, urlCompleta){
+  // Si tenemos la URL exacta (caso de hosting compartido), no reutilizamos
+  // un escaneo viejo del dominio en general — puede haber evaluado otra
+  // página distinta del mismo sitio. Vamos directo a escanear esa URL.
+  let resultado = urlCompleta ? null : await buscarUrlscanExistente(domain);
+  if(!resultado) resultado = await enviarNuevoUrlscan(domain, urlCompleta);
   if(!resultado) return {disponible:false};
   const overall = resultado.verdicts && resultado.verdicts.overall;
   if(!overall) return {disponible:false};
@@ -163,7 +193,7 @@ function asegurarCarpeta(nombreArchivo){
   if(dir && dir !== '.') fs.mkdirSync(dir, {recursive:true});
 }
 
-function regenerarListasDerivadas(dominios){
+function regenerarListasDerivadas(dominios, urlsCompletas){
   // Filtro de seguridad final: aunque un dominio de confianza se haya
   // colado a la lista por cualquier otra vía, nunca se escribe a los
   // archivos publicados.
@@ -265,6 +295,24 @@ function regenerarListasDerivadas(dominios){
     ''
   ].join('\n');
   fs.writeFileSync(CFG.archivos.squid, squid);
+
+  // ---- URLs completas (hosting compartido: NUNCA se bloquea el dominio) ----
+  // El DNS no puede filtrar por ruta, solo por dominio — por eso estas URLs
+  // no aparecen en ninguno de los archivos de arriba. Sirven para un proxy
+  // con soporte de URL completa (Squid con url_regex, un WAF, o una
+  // extensión de navegador con lista de bloqueo), nunca para DNS/firewall.
+  if(CFG.archivos.blacklistUrls){
+    const urlsOrdenadas = [...new Set(urlsCompletas || [])].sort();
+    asegurarCarpeta(CFG.archivos.blacklistUrls);
+    const urlsTxt = [
+      `# URLs exactas confirmadas como maliciosas en plataformas de hosting`,
+      `# compartido (no se bloquea el dominio completo). Generado por`,
+      `# AntiPhishingRD (${fecha}). Una URL por línea.`,
+      ...urlsOrdenadas,
+      ''
+    ].join('\n');
+    fs.writeFileSync(CFG.archivos.blacklistUrls, urlsTxt);
+  }
 }
 
 // ---------------- proceso principal ----------------
@@ -276,7 +324,9 @@ async function main(){
 
   const dominiosActuales = leerLista(CFG.archivos.blacklist);
   const setActual = new Set(dominiosActuales);
+  const urlsActuales = new Set(CFG.archivos.blacklistUrls ? leerLista(CFG.archivos.blacklistUrls) : []);
   let huboCambios = false;
+  let huboCambiosUrls = false;
 
   const issues = await listaDeIssuesReportados();
   console.log(`Issues de reporte a procesar: ${issues.length}`);
@@ -288,12 +338,6 @@ async function main(){
       continue;
     }
 
-    if(setActual.has(domain)){
-      await comentarIssue(issue.number, `El dominio \`${domain}\` ya está publicado en la blacklist — no se requiere ninguna acción adicional.`);
-      await actualizarIssue(issue.number, {state:'closed', labels:['reporte-dominio','ya-publicado']});
-      continue;
-    }
-
     const proveedor = esDominioDeConfianza(domain);
     if(proveedor){
       await comentarIssue(issue.number, [
@@ -302,6 +346,63 @@ async function main(){
         'Este dominio nunca se agrega a la blacklist automáticamente, sin importar el resultado de los motores externos — esto protege contra reportes maliciosos que busquen bloquear un servicio legítimo. Si de verdad detectaste phishing alojado bajo este proveedor (por ejemplo, una página fraudulenta en un subdominio de hosting gratuito), repórtalo directamente al proveedor además de aquí.'
       ].join('\n'));
       await actualizarIssue(issue.number, {state:'closed', labels:['reporte-dominio','dominio-protegido']});
+      continue;
+    }
+
+    const soloUrl = esSoloUrl(issue.body) || !!esHostingCompartido(domain);
+    const urlCompleta = extraerUrlCompleta(issue.body);
+
+    // ---- Caso: hosting compartido, solo se bloquea la URL exacta ----
+    if(soloUrl){
+      if(!urlCompleta){
+        await comentarIssue(issue.number, `\`${domain}\` es una plataforma de hosting compartido, pero no se pudo leer la URL exacta en este reporte. Edítalo con el formato "URL analizada: https://..." o ciérralo manualmente.`);
+        continue;
+      }
+      if(urlsActuales.has(urlCompleta)){
+        await comentarIssue(issue.number, `La URL \`${urlCompleta}\` ya está publicada en la lista de URLs exactas — no se requiere ninguna acción adicional. El dominio \`${domain}\` en sí nunca se bloquea, por ser hosting compartido.`);
+        await actualizarIssue(issue.number, {state:'closed', labels:['reporte-dominio','ya-publicado','solo-url']});
+        continue;
+      }
+
+      console.log(`Verificando URL exacta ${urlCompleta} (dominio de hosting compartido: ${domain})…`);
+      const urlscan = await consultarUrlscan(domain, urlCompleta);
+      const motoresConsultados = [];
+      let motoresDeAcuerdo = 0;
+      if(urlscan.disponible){ motoresConsultados.push(`urlscan.io sobre la URL exacta: veredicto ${urlscan.malicious ? 'MALICIOSO' : 'sin indicios'} (score ${urlscan.score}).`); if(urlscan.flagged) motoresDeAcuerdo++; }
+
+      const seConfirma = motoresDeAcuerdo >= CFG.minMotoresExternosDeAcuerdo && urlscan.disponible;
+
+      if(seConfirma){
+        urlsActuales.add(urlCompleta);
+        huboCambiosUrls = true;
+        await comentarIssue(issue.number, [
+          `✅ **Confirmado de forma independiente.** Se agrega la URL exacta \`${urlCompleta}\` a la lista de URLs bloqueadas.`,
+          '',
+          `⚠️ El dominio \`${domain}\` **no** se agrega a ningún archivo de DNS/firewall — es una plataforma de hosting compartido, y bloquear el dominio completo rompería el servicio para todos los demás usuarios. La URL exacta solo sirve para proxies con soporte de URL completa (Squid con url_regex) o extensiones de navegador, no para DNS.`,
+          '',
+          ...motoresConsultados
+        ].join('\n'));
+        await actualizarIssue(issue.number, {state:'closed', labels:['reporte-dominio','confirmado','solo-url']});
+      }else{
+        const motivo = urlscan.disponible
+          ? 'urlscan.io no confirmó esta URL específica como maliciosa.'
+          : 'No hay clave de urlscan.io configurada como secret del repositorio (URLSCAN_API_KEY), o el escaneo de esta URL exacta falló — no se puede verificar de forma automática todavía.';
+        await comentarIssue(issue.number, [
+          `⏳ **No se confirma automáticamente todavía.** ${motivo}`,
+          '',
+          ...(motoresConsultados.length ? motoresConsultados : ['Ningún motor externo respondió sobre esta URL exacta.']),
+          '',
+          'Este reporte queda abierto para revisión manual.'
+        ].join('\n'));
+        await actualizarIssue(issue.number, {labels:['reporte-dominio','revision-manual','solo-url']});
+      }
+      continue;
+    }
+
+    // ---- Caso normal: se puede bloquear el dominio completo ----
+    if(setActual.has(domain)){
+      await comentarIssue(issue.number, `El dominio \`${domain}\` ya está publicado en la blacklist — no se requiere ninguna acción adicional.`);
+      await actualizarIssue(issue.number, {state:'closed', labels:['reporte-dominio','ya-publicado']});
       continue;
     }
 
@@ -339,11 +440,11 @@ async function main(){
     }
   }
 
-  if(huboCambios){
-    regenerarListasDerivadas([...setActual]);
-    console.log('Listas regeneradas con los nuevos dominios confirmados.');
+  if(huboCambios || huboCambiosUrls){
+    regenerarListasDerivadas([...setActual], [...urlsActuales]);
+    console.log('Listas regeneradas con los nuevos dominios/URLs confirmados.');
   }else{
-    console.log('Ningún dominio nuevo fue confirmado en esta pasada.');
+    console.log('Ningún dominio ni URL nuevo fue confirmado en esta pasada.');
   }
 }
 
