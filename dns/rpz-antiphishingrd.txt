@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789052795 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789059984 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automáticamente por AntiPhishingRD (2026-09-10T15:06:35.876Z) — no editar a mano
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-10T17:06:24.474Z). No editar a mano.
 1profitdeal.com CNAME .
 abilityindisabilityindia.org CNAME .
 abrdokersignc.cfd CNAME .
@@ -15,4 +15,5 @@ buathaisushi.com CNAME .
 carlislefi.com CNAME .
 loop-lumen.com CNAME .
 nextside.cfd CNAME .
+software-gateway.click CNAME .
 www.abelmomaroc.com CNAME .
