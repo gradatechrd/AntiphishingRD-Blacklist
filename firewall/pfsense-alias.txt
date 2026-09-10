@@ -1,8 +1,9 @@
-# Alias de dominios bloqueados — pfSense / OPNsense / pfBlockerNG (2026-09-10T04:02:07.356Z)
+# Alias de dominios bloqueados — pfSense / OPNsense / pfBlockerNG (2026-09-10T04:47:19.044Z)
 accurateonlinelogin.top
 activar588.royalwebhosting.net
 allegrolokalnie.nr-327439sm32.lol
 allegrolokalnie.pl74646.top
+banrsserrvsasresumined.royalwebhosting.net
 buathaisushi.com
 loop-lumen.com
 nextside.cfd
