@@ -31,6 +31,28 @@ const SOLO_ISSUE = process.env.SOLO_ISSUE_NUMERO || '';
 
 const GH_API = 'https://api.github.com';
 
+// Dominios de proveedores reconocidos que NUNCA se agregan a la blacklist,
+// sin importar qué diga VirusTotal/urlscan.io ni quién haya abierto el issue.
+// Esta es la última barrera: protege contra un actor malicioso que intente
+// reportar un dominio legítimo (google.com, microsoft.com, etc.) para
+// sabotearlo y bloquear servicios/operaciones de negocio reales. Cubre el
+// dominio y cualquier subdominio. Mantén esta lista igual a TRUSTED_DOMAINS
+// en checker.js del sitio.
+const TRUSTED_DOMAINS = [
+  'google.com', 'youtube.com', 'gmail.com', 'googleapis.com', 'gstatic.com',
+  'microsoft.com', 'office.com', 'live.com', 'outlook.com', 'sharepoint.com', 'onedrive.com', 'azure.com',
+  'apple.com', 'icloud.com',
+  'facebook.com', 'instagram.com', 'whatsapp.com', 'meta.com',
+  'amazon.com',
+  'cloudflare.com', 'godaddy.com', 'digitalocean.com',
+  'dropbox.com', 'box.com', 'slack.com', 'zoom.us', 'webex.com', 'notion.so', 'trello.com', 'asana.com', 'monday.com', 'atlassian.com',
+  'github.com', 'gitlab.com', 'bitbucket.org',
+  'salesforce.com', 'linkedin.com', 'adobe.com', 'docusign.com', 'paypal.com', 'stripe.com'
+];
+function esDominioDeConfianza(domain){
+  return TRUSTED_DOMAINS.find(d => domain === d || domain.endsWith('.' + d)) || null;
+}
+
 function ghHeaders(){
   return {
     'Authorization': `Bearer ${GITHUB_TOKEN}`,
@@ -142,38 +164,107 @@ function asegurarCarpeta(nombreArchivo){
 }
 
 function regenerarListasDerivadas(dominios){
-  const ordenados = [...new Set(dominios)].sort();
+  // Filtro de seguridad final: aunque un dominio de confianza se haya
+  // colado a la lista por cualquier otra vía, nunca se escribe a los
+  // archivos publicados.
+  const sinProtegidos = dominios.filter(d => !esDominioDeConfianza(d));
+  const excluidos = dominios.filter(d => esDominioDeConfianza(d));
+  if(excluidos.length){
+    console.log(`Excluidos por ser dominios de confianza (no se publican): ${excluidos.join(', ')}`);
+  }
+  const ordenados = [...new Set(sinProtegidos)].sort();
   const fecha = new Date().toISOString();
 
+  // ---- Fuente principal: un dominio por línea ----
+  // También sirve tal cual como feed para FortiGate (Threat Feeds > Domain
+  // Name), Palo Alto (External Dynamic List de dominios), Cisco Umbrella
+  // (Custom Destination List) y NextDNS (Denylist): las cuatro aceptan una
+  // URL con un dominio por línea, sin ningún formato especial.
   asegurarCarpeta(CFG.archivos.blacklist);
   fs.writeFileSync(CFG.archivos.blacklist, ordenados.join('\n') + '\n');
 
+  // ---- BIND / Windows Server DNS (zona RPZ) ----
   asegurarCarpeta(CFG.archivos.dnsRpz);
   const rpz = [
     `$TTL 300`,
     `@ SOA localhost. admin.localhost. (${Math.floor(Date.now()/1000)} 3600 600 86400 300)`,
     `  NS  localhost.`,
-    `; Zona RPZ generada automáticamente por AntiPhishingRD (${fecha}) — no editar a mano`,
+    `; Zona RPZ generada automaticamente por AntiPhishingRD (${fecha}). No editar a mano.`,
     ...ordenados.map(d => `${d} CNAME .`),
     ''
   ].join('\n');
   fs.writeFileSync(CFG.archivos.dnsRpz, rpz);
 
+  // ---- Unbound nativo (sin módulo RPZ) ----
+  asegurarCarpeta(CFG.archivos.unbound);
+  const unbound = [
+    `# Bloqueo nativo para Unbound (sin módulo RPZ). Generado por AntiPhishingRD (${fecha}).`,
+    `# Inclúyelo en unbound.conf con: include: "/ruta/a/este/archivo"`,
+    ...ordenados.map(d => `local-zone: "${d}." always_nxdomain`),
+    ''
+  ].join('\n');
+  fs.writeFileSync(CFG.archivos.unbound, unbound);
+
+  // ---- Pi-hole (formato hosts) ----
   asegurarCarpeta(CFG.archivos.pihole);
   const pihole = [
-    `# Lista Pi-hole / AdGuard Home — AntiPhishingRD (${fecha})`,
+    `# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (${fecha}).`,
     ...ordenados.map(d => `0.0.0.0 ${d}`),
     ''
   ].join('\n');
   fs.writeFileSync(CFG.archivos.pihole, pihole);
 
+  // ---- AdGuard Home (sintaxis adblock nativa) ----
+  asegurarCarpeta(CFG.archivos.adguard);
+  const adguard = [
+    `! Lista AdGuard Home (sintaxis adblock). Generado por AntiPhishingRD (${fecha}).`,
+    `! Agregar en Filtros > Listas de bloqueo DNS > Agregar lista de bloqueo personalizada`,
+    ...ordenados.map(d => `||${d}^`),
+    ''
+  ].join('\n');
+  fs.writeFileSync(CFG.archivos.adguard, adguard);
+
+  // ---- dnsmasq ----
+  asegurarCarpeta(CFG.archivos.dnsmasq);
+  const dnsmasq = [
+    `# Bloqueo para dnsmasq. Generado por AntiPhishingRD (${fecha}).`,
+    `# Inclúyelo con: conf-file=/ruta/a/este/archivo (o colócalo en /etc/dnsmasq.d/)`,
+    ...ordenados.map(d => `address=/${d}/0.0.0.0`),
+    ''
+  ].join('\n');
+  fs.writeFileSync(CFG.archivos.dnsmasq, dnsmasq);
+
+  // ---- pfSense / OPNsense / pfBlockerNG (lista simple para feed personalizado) ----
   asegurarCarpeta(CFG.archivos.firewall);
   const fw = [
-    `# Alias de dominios bloqueados — pfSense / OPNsense / pfBlockerNG (${fecha})`,
+    `# Feed de dominios bloqueados para pfSense (pfBlockerNG DNSBL) y OPNsense`,
+    `# (bloqueador de dominios de Unbound). Generado por AntiPhishingRD (${fecha}).`,
     ...ordenados,
     ''
   ].join('\n');
   fs.writeFileSync(CFG.archivos.firewall, fw);
+
+  // ---- MikroTik RouterOS (script listo para importar) ----
+  asegurarCarpeta(CFG.archivos.mikrotik);
+  const mikrotik = [
+    `# Script RouterOS. Generado por AntiPhishingRD (${fecha}).`,
+    `# Importar con: /import file-name=mikrotik-antiphishingrd.rsc`,
+    `/ip dns static`,
+    ...ordenados.map(d => `add name=${d} type=A address=0.0.0.0 comment="AntiPhishingRD"`),
+    ''
+  ].join('\n');
+  fs.writeFileSync(CFG.archivos.mikrotik, mikrotik);
+
+  // ---- Squid proxy (ACL dstdomain) ----
+  asegurarCarpeta(CFG.archivos.squid);
+  const squid = [
+    `# ACL dstdomain para Squid. Generado por AntiPhishingRD (${fecha}).`,
+    `# En squid.conf: acl antiphishingrd dstdomain "/ruta/a/este/archivo"`,
+    `#                http_access deny antiphishingrd`,
+    ...ordenados.map(d => `.${d}`),
+    ''
+  ].join('\n');
+  fs.writeFileSync(CFG.archivos.squid, squid);
 }
 
 // ---------------- proceso principal ----------------
@@ -200,6 +291,17 @@ async function main(){
     if(setActual.has(domain)){
       await comentarIssue(issue.number, `El dominio \`${domain}\` ya está publicado en la blacklist — no se requiere ninguna acción adicional.`);
       await actualizarIssue(issue.number, {state:'closed', labels:['reporte-dominio','ya-publicado']});
+      continue;
+    }
+
+    const proveedor = esDominioDeConfianza(domain);
+    if(proveedor){
+      await comentarIssue(issue.number, [
+        `🛡️ **Dominio protegido, no se procesa.** \`${domain}\` pertenece a ${proveedor}, un proveedor reconocido en la lista de exclusión.`,
+        '',
+        'Este dominio nunca se agrega a la blacklist automáticamente, sin importar el resultado de los motores externos — esto protege contra reportes maliciosos que busquen bloquear un servicio legítimo. Si de verdad detectaste phishing alojado bajo este proveedor (por ejemplo, una página fraudulenta en un subdominio de hosting gratuito), repórtalo directamente al proveedor además de aquí.'
+      ].join('\n'));
+      await actualizarIssue(issue.number, {state:'closed', labels:['reporte-dominio','dominio-protegido']});
       continue;
     }
 
