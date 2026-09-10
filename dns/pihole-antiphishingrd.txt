@@ -1,5 +1,6 @@
-# Lista Pi-hole / AdGuard Home — AntiPhishingRD (2026-09-10T10:20:03.528Z)
+# Lista Pi-hole / AdGuard Home — AntiPhishingRD (2026-09-10T15:06:35.876Z)
 0.0.0.0 1profitdeal.com
+0.0.0.0 abilityindisabilityindia.org
 0.0.0.0 abrdokersignc.cfd
 0.0.0.0 accurateonlinelogin.top
 0.0.0.0 activar588.royalwebhosting.net

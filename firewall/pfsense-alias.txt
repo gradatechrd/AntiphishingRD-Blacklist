@@ -1,5 +1,6 @@
-# Alias de dominios bloqueados — pfSense / OPNsense / pfBlockerNG (2026-09-10T10:20:03.528Z)
+# Alias de dominios bloqueados — pfSense / OPNsense / pfBlockerNG (2026-09-10T15:06:35.876Z)
 1profitdeal.com
+abilityindisabilityindia.org
 abrdokersignc.cfd
 accurateonlinelogin.top
 activar588.royalwebhosting.net

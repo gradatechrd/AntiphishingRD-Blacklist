@@ -1,8 +1,9 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789035603 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789052795 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automáticamente por AntiPhishingRD (2026-09-10T10:20:03.528Z) — no editar a mano
+; Zona RPZ generada automáticamente por AntiPhishingRD (2026-09-10T15:06:35.876Z) — no editar a mano
 1profitdeal.com CNAME .
+abilityindisabilityindia.org CNAME .
 abrdokersignc.cfd CNAME .
 accurateonlinelogin.top CNAME .
 activar588.royalwebhosting.net CNAME .
