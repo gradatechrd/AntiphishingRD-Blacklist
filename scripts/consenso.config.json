@@ -10,8 +10,14 @@
   "archivos": {
     "blacklist": "blacklist.txt",
     "dnsRpz": "dns/rpz-antiphishingrd.txt",
+    "unbound": "dns/unbound-antiphishingrd.conf",
     "pihole": "dns/pihole-antiphishingrd.txt",
-    "firewall": "firewall/pfsense-alias.txt"
+    "adguard": "dns/adguard-antiphishingrd.txt",
+    "dnsmasq": "dns/dnsmasq-antiphishingrd.conf",
+    "firewall": "firewall/pfsense-alias.txt",
+    "mikrotik": "firewall/mikrotik-antiphishingrd.rsc",
+    "squid": "firewall/squid-antiphishingrd.acl",
+    "blacklistUrls": "urls-exactas.txt"
   },
   "dominioZonaRpz": "rpz.antiphishingrd.local"
 }
