@@ -1,7 +1,8 @@
-# Lista Pi-hole / AdGuard Home — AntiPhishingRD (2026-09-10T02:38:27.968Z)
+# Lista Pi-hole / AdGuard Home — AntiPhishingRD (2026-09-10T04:01:06.244Z)
 0.0.0.0 activar588.royalwebhosting.net
 0.0.0.0 allegrolokalnie.nr-327439sm32.lol
 0.0.0.0 allegrolokalnie.pl74646.top
 0.0.0.0 buathaisushi.com
 0.0.0.0 loop-lumen.com
+0.0.0.0 nextside.cfd
 0.0.0.0 www.abelmomaroc.com
