@@ -1,4 +1,4 @@
-# Lista Pi-hole / AdGuard Home — AntiPhishingRD (2026-09-10T04:53:12.267Z)
+# Lista Pi-hole / AdGuard Home — AntiPhishingRD (2026-09-10T06:56:54.756Z)
 0.0.0.0 abrdokersignc.cfd
 0.0.0.0 accurateonlinelogin.top
 0.0.0.0 activar588.royalwebhosting.net
@@ -6,6 +6,7 @@
 0.0.0.0 allegrolokalnie.pl74646.top
 0.0.0.0 banrsserrvsasresumined.royalwebhosting.net
 0.0.0.0 buathaisushi.com
+0.0.0.0 carlislefi.com
 0.0.0.0 loop-lumen.com
 0.0.0.0 nextside.cfd
 0.0.0.0 www.abelmomaroc.com
