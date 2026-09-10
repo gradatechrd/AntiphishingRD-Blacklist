@@ -1,6 +1,7 @@
-# Script RouterOS. Generado por AntiPhishingRD (2026-09-10T17:06:24.474Z).
+# Script RouterOS. Generado por AntiPhishingRD (2026-09-10T20:16:36.971Z).
 # Importar con: /import file-name=mikrotik-antiphishingrd.rsc
 /ip dns static
+add name=02teste.cc type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=1profitdeal.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=abilityindisabilityindia.org type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=abrdokersignc.cfd type=A address=0.0.0.0 comment="AntiPhishingRD"
