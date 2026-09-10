@@ -1,4 +1,5 @@
-# Lista Pi-hole / AdGuard Home — AntiPhishingRD (2026-09-10T04:01:06.244Z)
+# Lista Pi-hole / AdGuard Home — AntiPhishingRD (2026-09-10T04:02:07.356Z)
+0.0.0.0 accurateonlinelogin.top
 0.0.0.0 activar588.royalwebhosting.net
 0.0.0.0 allegrolokalnie.nr-327439sm32.lol
 0.0.0.0 allegrolokalnie.pl74646.top
