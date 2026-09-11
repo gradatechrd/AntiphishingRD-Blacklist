@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789098772 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789099992 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-11T03:52:52.748Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-11T04:13:12.691Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
@@ -18,6 +18,7 @@ buathaisushi.com CNAME .
 carlislefi.com CNAME .
 cu.srijanajha.com.np CNAME .
 dropboxb3.duckdns.org CNAME .
+iloveboats.st CNAME .
 lively-fog-af49.pablosoftwareplus.workers.dev CNAME .
 loop-lumen.com CNAME .
 mail.quietsurfwi.help CNAME .
