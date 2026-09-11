@@ -392,7 +392,7 @@ async function planificar(){
           '',
           'Este dominio nunca se agrega a la blacklist automáticamente, sin importar el resultado de los motores externos. Esto protege contra reportes maliciosos que busquen bloquear un servicio legítimo. Si de verdad detectaste phishing alojado bajo este proveedor (por ejemplo, una página fraudulenta en un subdominio de hosting gratuito), repórtalo directamente al proveedor además de aquí.'
         ].join('\n'),
-        actualizacion: {state:'closed', labels:['reporte-dominio','dominio-protegido']}
+        actualizacion: {state:'closed', title: `🛡️ Protegido: ${domain}`, labels:['reporte-dominio','dominio-protegido']}
       });
       continue;
     }
@@ -418,7 +418,7 @@ async function planificar(){
             '',
             `⚠️ El dominio \`${domain}\` **no** se agrega a ningún archivo de DNS/firewall, es una plataforma de hosting compartido.`
           ].join('\n'),
-          actualizacion: {state:'closed', labels:['reporte-dominio','confirmado','solo-url','aprobado-manual']}
+          actualizacion: {state:'closed', title: `✅ Confirmado: ${domain}`, labels:['reporte-dominio','confirmado','solo-url','aprobado-manual']}
         });
       }else{
         setActual.add(domain);
@@ -426,7 +426,7 @@ async function planificar(){
         acciones.push({
           numero: issue.number,
           comentario: `✅ **Aprobado manualmente.** Se agrega \`${domain}\` a la blacklist pública, la zona DNS RPZ, la lista de Pi-hole y el alias de firewall.`,
-          actualizacion: {state:'closed', labels:['reporte-dominio','confirmado','aprobado-manual']}
+          actualizacion: {state:'closed', title: `✅ Confirmado: ${domain}`, labels:['reporte-dominio','confirmado','aprobado-manual']}
         });
       }
       continue;
@@ -442,7 +442,7 @@ async function planificar(){
         acciones.push({
           numero: issue.number,
           comentario: `La URL \`${urlCompleta}\` ya está publicada en la lista de URLs exactas, no se requiere ninguna acción adicional. El dominio \`${domain}\` en sí nunca se bloquea, por ser hosting compartido.`,
-          actualizacion: {state:'closed', labels:['reporte-dominio','ya-publicado','solo-url']}
+          actualizacion: {state:'closed', title: `✅ Ya publicado: ${domain}`, labels:['reporte-dominio','ya-publicado','solo-url']}
         });
         continue;
       }
@@ -471,7 +471,7 @@ async function planificar(){
             '',
             `⚠️ El dominio \`${domain}\` **no** se agrega a ningún archivo de DNS/firewall, es una plataforma de hosting compartido, y bloquear el dominio completo rompería el servicio para todos los demás usuarios. La URL exacta solo sirve para proxies con soporte de URL completa (Squid con url_regex) o extensiones de navegador, no para DNS.`
           ].join('\n'),
-          actualizacion: {state:'closed', labels:['reporte-dominio','confirmado','solo-url']}
+          actualizacion: {state:'closed', title: `✅ Confirmado: ${domain}`, labels:['reporte-dominio','confirmado','solo-url']}
         });
       }else{
         acciones.push({
@@ -481,7 +481,7 @@ async function planificar(){
             '',
             'Este reporte queda abierto para revisión manual. Si un administrador confirma que es malicioso, puede agregar la etiqueta `confirmado` (o `aprobado-manual`) a este issue para publicarlo en la próxima ejecución, sin depender de las fuentes externas.'
           ].join('\n'),
-          actualizacion: {labels:['reporte-dominio','revision-manual','solo-url']}
+          actualizacion: {title: `⏳ Pendiente de revisión: ${domain}`, labels:['reporte-dominio','revision-manual','solo-url']}
         });
       }
       continue;
@@ -492,7 +492,7 @@ async function planificar(){
       acciones.push({
         numero: issue.number,
         comentario: `El dominio \`${domain}\` ya está publicado en la blacklist, no se requiere ninguna acción adicional.`,
-        actualizacion: {state:'closed', labels:['reporte-dominio','ya-publicado']}
+        actualizacion: {state:'closed', title: `✅ Ya publicado: ${domain}`, labels:['reporte-dominio','ya-publicado']}
       });
       continue;
     }
@@ -518,7 +518,7 @@ async function planificar(){
       acciones.push({
         numero: issue.number,
         comentario: `✅ **Confirmado de forma independiente.** Se agrega \`${domain}\` a la blacklist pública, la zona DNS RPZ, la lista de Pi-hole y el alias de firewall.`,
-        actualizacion: {state:'closed', labels:['reporte-dominio','confirmado']}
+        actualizacion: {state:'closed', title: `✅ Confirmado: ${domain}`, labels:['reporte-dominio','confirmado']}
       });
     }else{
       acciones.push({
@@ -528,7 +528,7 @@ async function planificar(){
           '',
           'Este reporte queda abierto para revisión manual. Si confirmas que es malicioso, agrega la etiqueta `confirmado` (o `aprobado-manual`) a este issue para publicarlo en la próxima ejecución, sin depender de las fuentes externas.'
         ].join('\n'),
-        actualizacion: {labels:['reporte-dominio','revision-manual']}
+        actualizacion: {title: `⏳ Pendiente de revisión: ${domain}`, labels:['reporte-dominio','revision-manual']}
       });
     }
   }
