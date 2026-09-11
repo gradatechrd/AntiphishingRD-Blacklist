@@ -1,4 +1,4 @@
-! Lista AdGuard Home (sintaxis adblock). Generado por AntiPhishingRD (2026-09-11T02:27:34.305Z).
+! Lista AdGuard Home (sintaxis adblock). Generado por AntiPhishingRD (2026-09-11T02:43:53.350Z).
 ! Agregar en Filtros > Listas de bloqueo DNS > Agregar lista de bloqueo personalizada
 ||02teste.cc^
 ||1profitdeal.com^
@@ -8,6 +8,7 @@
 ||activar588.royalwebhosting.net^
 ||allegrolokalnie.nr-327439sm32.lol^
 ||allegrolokalnie.pl74646.top^
+||api.cdn22.net^
 ||banrsserrvsasresumined.royalwebhosting.net^
 ||beseest.com^
 ||buathaisushi.com^
