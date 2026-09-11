@@ -4,7 +4,6 @@ $TTL 300
 ; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-11T21:48:41.571Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
-194.54.160.220 CNAME .
 1profitdeal.com CNAME .
 abilityindisabilityindia.org CNAME .
 abrdokersignc.cfd CNAME .
