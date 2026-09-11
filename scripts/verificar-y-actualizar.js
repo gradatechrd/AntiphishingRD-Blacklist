@@ -64,7 +64,7 @@ const SHARED_HOSTING_DOMAINS = [
   'telegra.ph', 'pastebin.com',
   'github.io', 'githubusercontent.com',
   'amazonaws.com', 'azurewebsites.net', 'herokuapp.com', 'netlify.app', 'vercel.app', 'firebaseapp.com', 'web.app',
-  'blogspot.com', 'weebly.com', 'wixsite.com', 'glitch.me', 'repl.co',
+  'blogspot.com', 'weebly.com', 'wixsite.com', 'glitch.me', 'repl.co', 'replit.dev', 'replit.app', 'pages.dev', 'surge.sh',
   'ngrok.io', 'ngrok-free.app', 'ngrok.app',
   'dropboxusercontent.com', 'googleusercontent.com'
 ];
@@ -117,6 +117,11 @@ function extraerUrlCompleta(body){
 
 function esSoloUrl(body){
   return /Alcance del bloqueo:\s*solo-url/i.test(body || '');
+}
+
+function tieneAprobacionManual(issue){
+  const nombres = (issue.labels || []).map(l => (typeof l === 'string' ? l : l.name));
+  return nombres.includes('aprobado-manual') || nombres.includes('confirmado');
 }
 
 // ---------------- VirusTotal ----------------
@@ -395,6 +400,38 @@ async function planificar(){
     const soloUrl = esSoloUrl(issue.body) || !!esHostingCompartido(domain);
     const urlCompleta = extraerUrlCompleta(issue.body);
 
+    // ---- Aprobación manual: un administrador revisó el reporte y agregó
+    // la etiqueta "aprobado-manual" al issue. Se publica directo, sin
+    // depender de que los motores externos lo confirmen por su cuenta. ----
+    if(tieneAprobacionManual(issue)){
+      if(soloUrl){
+        if(!urlCompleta){
+          acciones.push({numero: issue.number, comentario: `Tiene la etiqueta \`aprobado-manual\`, pero \`${domain}\` es hosting compartido y no se pudo leer la URL exacta en este reporte. Edítalo con el formato "URL analizada: https://..." para poder publicarlo.`});
+          continue;
+        }
+        urlsActuales.add(urlCompleta);
+        huboCambiosUrls = true;
+        acciones.push({
+          numero: issue.number,
+          comentario: [
+            `✅ **Aprobado manualmente.** Se agrega la URL exacta \`${urlCompleta}\` a la lista de URLs bloqueadas.`,
+            '',
+            `⚠️ El dominio \`${domain}\` **no** se agrega a ningún archivo de DNS/firewall, es una plataforma de hosting compartido.`
+          ].join('\n'),
+          actualizacion: {state:'closed', labels:['reporte-dominio','confirmado','solo-url','aprobado-manual']}
+        });
+      }else{
+        setActual.add(domain);
+        huboCambios = true;
+        acciones.push({
+          numero: issue.number,
+          comentario: `✅ **Aprobado manualmente.** Se agrega \`${domain}\` a la blacklist pública, la zona DNS RPZ, la lista de Pi-hole y el alias de firewall.`,
+          actualizacion: {state:'closed', labels:['reporte-dominio','confirmado','aprobado-manual']}
+        });
+      }
+      continue;
+    }
+
     // ---- Caso: hosting compartido, solo se bloquea la URL exacta ----
     if(soloUrl){
       if(!urlCompleta){
@@ -412,12 +449,14 @@ async function planificar(){
 
       console.log(`Verificando URL exacta ${urlCompleta} (dominio de hosting compartido: ${domain})…`);
       const [urlscan, urlhaus] = await Promise.all([consultarUrlscan(domain, urlCompleta), consultarUrlhaus(urlCompleta)]);
-      const motoresConsultados = [];
       let motoresDeAcuerdo = 0;
-      if(urlscan.disponible){ motoresConsultados.push(`urlscan.io sobre la URL exacta: veredicto ${urlscan.malicious ? 'MALICIOSO' : 'sin indicios'} (score ${urlscan.score}).`); if(urlscan.flagged) motoresDeAcuerdo++; }
+      if(urlscan.disponible){
+        console.log(`  urlscan.io: ${urlscan.malicious ? 'MALICIOSO' : 'sin indicios'} (score ${urlscan.score})`);
+        if(urlscan.flagged) motoresDeAcuerdo++;
+      }
       if(urlhaus.disponible){
-        if(urlhaus.encontrado){ motoresConsultados.push(`Base de malware especializada: URL encontrada como amenaza (${urlhaus.amenaza}${urlhaus.enLinea ? ', aún activa' : ''}).`); if(urlhaus.flagged) motoresDeAcuerdo++; }
-        else { motoresConsultados.push('Base de malware especializada: sin coincidencias para esta URL.'); }
+        console.log(`  URLhaus: ${urlhaus.encontrado ? `encontrado (${urlhaus.amenaza})` : 'sin coincidencias'}`);
+        if(urlhaus.flagged) motoresDeAcuerdo++;
       }
 
       const seConfirma = motoresDeAcuerdo >= CFG.minMotoresExternosDeAcuerdo && (urlscan.disponible || urlhaus.disponible);
@@ -430,24 +469,17 @@ async function planificar(){
           comentario: [
             `✅ **Confirmado de forma independiente.** Se agrega la URL exacta \`${urlCompleta}\` a la lista de URLs bloqueadas.`,
             '',
-            `⚠️ El dominio \`${domain}\` **no** se agrega a ningún archivo de DNS/firewall, es una plataforma de hosting compartido, y bloquear el dominio completo rompería el servicio para todos los demás usuarios. La URL exacta solo sirve para proxies con soporte de URL completa (Squid con url_regex) o extensiones de navegador, no para DNS.`,
-            '',
-            ...motoresConsultados
+            `⚠️ El dominio \`${domain}\` **no** se agrega a ningún archivo de DNS/firewall, es una plataforma de hosting compartido, y bloquear el dominio completo rompería el servicio para todos los demás usuarios. La URL exacta solo sirve para proxies con soporte de URL completa (Squid con url_regex) o extensiones de navegador, no para DNS.`
           ].join('\n'),
           actualizacion: {state:'closed', labels:['reporte-dominio','confirmado','solo-url']}
         });
       }else{
-        const motivo = (urlscan.disponible || urlhaus.disponible)
-          ? 'Ni urlscan.io ni la base de malware especializada confirmaron esta URL específica como maliciosa.'
-          : 'No hay claves configuradas como secrets del repositorio (URLSCAN_API_KEY / URLHAUS_AUTH_KEY), o la verificación de esta URL exacta falló; no se puede verificar de forma automática todavía.';
         acciones.push({
           numero: issue.number,
           comentario: [
-            `⏳ **No se confirma automáticamente todavía.** ${motivo}`,
+            '⏳ **No se confirma automáticamente todavía.** Las fuentes de verificación externas consultadas no alcanzaron el consenso mínimo para confirmar esta URL como maliciosa.',
             '',
-            ...(motoresConsultados.length ? motoresConsultados : ['Ningún motor externo respondió sobre esta URL exacta.']),
-            '',
-            'Este reporte queda abierto para revisión manual.'
+            'Este reporte queda abierto para revisión manual. Si un administrador confirma que es malicioso, puede agregar la etiqueta `confirmado` (o `aprobado-manual`) a este issue para publicarlo en la próxima ejecución, sin depender de las fuentes externas.'
           ].join('\n'),
           actualizacion: {labels:['reporte-dominio','revision-manual','solo-url']}
         });
@@ -468,10 +500,15 @@ async function planificar(){
     console.log(`Verificando ${domain}…`);
     const [vt, urlscan] = await Promise.all([consultarVirusTotal(domain), consultarUrlscan(domain)]);
 
-    const motoresConsultados = [];
     let motoresDeAcuerdo = 0;
-    if(vt.disponible){ motoresConsultados.push(`VirusTotal: ${vt.malicious}/${vt.total} motores lo marcan malicioso.`); if(vt.flagged) motoresDeAcuerdo++; }
-    if(urlscan.disponible){ motoresConsultados.push(`urlscan.io: veredicto ${urlscan.malicious ? 'MALICIOSO' : 'sin indicios'} (score ${urlscan.score}).`); if(urlscan.flagged) motoresDeAcuerdo++; }
+    if(vt.disponible){
+      console.log(`  VirusTotal: ${vt.malicious}/${vt.total} motores lo marcan malicioso`);
+      if(vt.flagged) motoresDeAcuerdo++;
+    }
+    if(urlscan.disponible){
+      console.log(`  urlscan.io: ${urlscan.malicious ? 'MALICIOSO' : 'sin indicios'} (score ${urlscan.score})`);
+      if(urlscan.flagged) motoresDeAcuerdo++;
+    }
 
     const seConfirma = motoresDeAcuerdo >= CFG.minMotoresExternosDeAcuerdo && (vt.disponible || urlscan.disponible);
 
@@ -480,25 +517,16 @@ async function planificar(){
       huboCambios = true;
       acciones.push({
         numero: issue.number,
-        comentario: [
-          `✅ **Confirmado de forma independiente.** Se agrega \`${domain}\` a la blacklist pública, la zona DNS RPZ, la lista de Pi-hole y el alias de firewall.`,
-          '',
-          ...motoresConsultados
-        ].join('\n'),
+        comentario: `✅ **Confirmado de forma independiente.** Se agrega \`${domain}\` a la blacklist pública, la zona DNS RPZ, la lista de Pi-hole y el alias de firewall.`,
         actualizacion: {state:'closed', labels:['reporte-dominio','confirmado']}
       });
     }else{
-      const motivo = (vt.disponible || urlscan.disponible)
-        ? 'Los motores externos consultados no alcanzaron el consenso mínimo para confirmarlo automáticamente.'
-        : 'No hay claves de VirusTotal/urlscan.io configuradas como secrets del repositorio (VIRUSTOTAL_API_KEY / URLSCAN_API_KEY), no se puede verificar de forma automática todavía.';
       acciones.push({
         numero: issue.number,
         comentario: [
-          `⏳ **No se confirma automáticamente todavía.** ${motivo}`,
+          '⏳ **No se confirma automáticamente todavía.** Las fuentes de verificación externas consultadas no alcanzaron el consenso mínimo para confirmarlo automáticamente.',
           '',
-          ...(motoresConsultados.length ? motoresConsultados : ['Ningún motor externo respondió.']),
-          '',
-          'Este reporte queda abierto para revisión manual. Si un analista confirma que es malicioso, agrégalo a mano a blacklist.txt o vuelve a etiquetar el issue una vez configuradas las claves de los motores externos.'
+          'Este reporte queda abierto para revisión manual. Si confirmas que es malicioso, agrega la etiqueta `confirmado` (o `aprobado-manual`) a este issue para publicarlo en la próxima ejecución, sin depender de las fuentes externas.'
         ].join('\n'),
         actualizacion: {labels:['reporte-dominio','revision-manual']}
       });
