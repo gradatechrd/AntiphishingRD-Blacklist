@@ -24,6 +24,12 @@ jobs:
     permissions:
       contents: write
       issues: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+      URLSCAN_API_KEY: ${{ secrets.URLSCAN_API_KEY }}
+      SOLO_ISSUE_NUMERO: ${{ github.event.inputs.solo_issue || (github.event.issue && github.event.issue.number) || '' }}
     steps:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
@@ -33,24 +39,37 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Verificar dominios reportados y regenerar listas
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
-          URLSCAN_API_KEY: ${{ secrets.URLSCAN_API_KEY }}
-          SOLO_ISSUE_NUMERO: ${{ github.event.inputs.solo_issue || (github.event.issue && github.event.issue.number) || '' }}
-        run: node scripts/verificar-y-actualizar.js
-
-      - name: Confirmar y subir cambios en las listas
+      - name: Verificar dominios, regenerar listas y publicar
         run: |
           git config user.name "antiphishingrd-bot"
           git config user.email "antiphishingrd-bot@users.noreply.github.com"
-          git add -A
-          git commit -m "chore: actualizar listas verificadas [skip ci]" || echo "Nada que commitear"
+
+          PUBLICADO=0
           for i in 1 2 3 4 5; do
-            git push && break
-            echo "Push rechazado (otra ejecución subió cambios primero). Sincronizando y reintentando…"
-            git pull --rebase --autostash
+            echo "--- Intento $i: planificando y regenerando listas ---"
+            node scripts/verificar-y-actualizar.js planificar
+
+            git add -A
+            git commit -m "chore: actualizar listas verificadas [skip ci]" || echo "Nada que commitear"
+
+            if git push; then
+              echo "Publicado correctamente."
+              PUBLICADO=1
+              break
+            fi
+
+            echo "Push rechazado (otra ejecución subió cambios primero)."
+            echo "Descartando los archivos generados en este intento y volviendo a generarlos sobre la versión más reciente…"
+            git fetch origin main
+            git reset --hard origin/main
             sleep 3
           done
+
+          if [ "$PUBLICADO" != "1" ]; then
+            echo "No se logró publicar tras varios intentos. No se van a comentar/cerrar issues todavía."
+            exit 1
+          fi
+
+      - name: Comentar y cerrar los issues ya publicados
+        if: success()
+        run: node scripts/verificar-y-actualizar.js aplicar
