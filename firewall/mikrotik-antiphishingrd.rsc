@@ -3,7 +3,6 @@
 /ip dns static
 add name=02teste.cc type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=0rder-ver1f2345.com type=A address=0.0.0.0 comment="AntiPhishingRD"
-add name=194.54.160.220 type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=1profitdeal.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=abilityindisabilityindia.org type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=abrdokersignc.cfd type=A address=0.0.0.0 comment="AntiPhishingRD"
