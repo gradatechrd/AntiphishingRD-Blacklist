@@ -1,3 +1,6 @@
 # URLs exactas confirmadas como maliciosas en plataformas de hosting
 # compartido (no se bloquea el dominio completo). Generado por
+# AntiPhishingRD (2026-09-11T03:52:20.496Z). Una URL por línea.
 # AntiPhishingRD (2026-09-11T03:51:18.543Z). Una URL por línea.
+# URLs exactas confirmadas como maliciosas en plataformas de hosting
+# compartido (no se bloquea el dominio completo). Generado por
