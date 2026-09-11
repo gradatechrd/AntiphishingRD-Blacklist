@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789099992 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789100023 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-11T04:13:12.691Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-11T04:13:43.298Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
@@ -25,6 +25,7 @@ mail.quietsurfwi.help CNAME .
 nextside.cfd CNAME .
 pub-d21b4190a47f45628c828456f23dd66e.r2.dev CNAME .
 qqwwaa.tos-cn-hongkong.volces.com CNAME .
+quietsurfwi.help CNAME .
 scooter.cozyvistany.com CNAME .
 software-gateway.click CNAME .
 www.abelmomaroc.com CNAME .
