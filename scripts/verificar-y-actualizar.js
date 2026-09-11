@@ -160,7 +160,7 @@ async function enviarNuevoUrlscan(domain, urlCompleta){
     const submit = await fetch('https://urlscan.io/api/v1/scan/', {
       method:'POST',
       headers:{'API-Key': URLSCAN_KEY, 'Content-Type':'application/json'},
-      body: JSON.stringify({url: urlCompleta || `http://${domain}`, visibility:'public'})
+      body: JSON.stringify({url: urlCompleta || `http://${domain}`, visibility:'unlisted'})
     });
     if(!submit.ok) return null;
     const { api } = await submit.json();
