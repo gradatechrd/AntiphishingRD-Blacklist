@@ -314,11 +314,24 @@ function regenerarListasDerivadas(dominios, urlsCompletas){
     fs.writeFileSync(CFG.archivos.blacklistUrls, urlsTxt);
   }
 }
-
 // ---------------- proceso principal ----------------
-async function main(){
+// Separado en dos fases para que sea seguro reintentar el push sin perder
+// ni duplicar nada:
+//   1) planificar(): decide qué hacer con cada issue y regenera los
+//      archivos de listas, NUNCA toca los issues de GitHub todavía.
+//      Se puede volver a correr tantas veces como haga falta (por ejemplo
+//      si el primer intento de "git push" fue rechazado).
+//   2) aplicarPlan(): solo se corre UNA VEZ, después de que el push a
+//      GitHub ya se confirmó exitoso. Recién ahí comenta y cierra los
+//      issues de verdad.
+// Antes, ambos pasos ocurrían juntos, así que si el push fallaba y se
+// reintentaba, un issue que ya se había cerrado en el intento anterior no
+// se volvía a procesar, y su dominio/URL se perdía en silencio.
+const PLAN_FILE = path.join(require('os').tmpdir(), 'antiphishingrd-plan-issues.json');
+
+async function planificar(){
   if(!GITHUB_TOKEN || !OWNER || !REPO){
-    console.log('Faltan credenciales de GitHub en el entorno — nada que hacer.');
+    console.log('Faltan credenciales de GitHub en el entorno, nada que hacer.');
     return;
   }
 
@@ -327,6 +340,7 @@ async function main(){
   const urlsActuales = new Set(CFG.archivos.blacklistUrls ? leerLista(CFG.archivos.blacklistUrls) : []);
   let huboCambios = false;
   let huboCambiosUrls = false;
+  const acciones = [];
 
   const issues = await listaDeIssuesReportados();
   console.log(`Issues de reporte a procesar: ${issues.length}`);
@@ -334,18 +348,21 @@ async function main(){
   for(const issue of issues){
     const domain = extraerDominio(issue.body);
     if(!domain){
-      await comentarIssue(issue.number, 'No se pudo identificar el dominio en este reporte. Edítalo con el formato "Dominio: ejemplo.com" o ciérralo manualmente.');
+      acciones.push({numero: issue.number, comentario: 'No se pudo identificar el dominio en este reporte. Edítalo con el formato "Dominio: ejemplo.com" o ciérralo manualmente.'});
       continue;
     }
 
     const proveedor = esDominioDeConfianza(domain);
     if(proveedor){
-      await comentarIssue(issue.number, [
-        `🛡️ **Dominio protegido, no se procesa.** \`${domain}\` pertenece a ${proveedor}, un proveedor reconocido en la lista de exclusión.`,
-        '',
-        'Este dominio nunca se agrega a la blacklist automáticamente, sin importar el resultado de los motores externos — esto protege contra reportes maliciosos que busquen bloquear un servicio legítimo. Si de verdad detectaste phishing alojado bajo este proveedor (por ejemplo, una página fraudulenta en un subdominio de hosting gratuito), repórtalo directamente al proveedor además de aquí.'
-      ].join('\n'));
-      await actualizarIssue(issue.number, {state:'closed', labels:['reporte-dominio','dominio-protegido']});
+      acciones.push({
+        numero: issue.number,
+        comentario: [
+          `🛡️ **Dominio protegido, no se procesa.** \`${domain}\` pertenece a ${proveedor}, un proveedor reconocido en la lista de exclusión.`,
+          '',
+          'Este dominio nunca se agrega a la blacklist automáticamente, sin importar el resultado de los motores externos. Esto protege contra reportes maliciosos que busquen bloquear un servicio legítimo. Si de verdad detectaste phishing alojado bajo este proveedor (por ejemplo, una página fraudulenta en un subdominio de hosting gratuito), repórtalo directamente al proveedor además de aquí.'
+        ].join('\n'),
+        actualizacion: {state:'closed', labels:['reporte-dominio','dominio-protegido']}
+      });
       continue;
     }
 
@@ -355,12 +372,15 @@ async function main(){
     // ---- Caso: hosting compartido, solo se bloquea la URL exacta ----
     if(soloUrl){
       if(!urlCompleta){
-        await comentarIssue(issue.number, `\`${domain}\` es una plataforma de hosting compartido, pero no se pudo leer la URL exacta en este reporte. Edítalo con el formato "URL analizada: https://..." o ciérralo manualmente.`);
+        acciones.push({numero: issue.number, comentario: `\`${domain}\` es una plataforma de hosting compartido, pero no se pudo leer la URL exacta en este reporte. Edítalo con el formato "URL analizada: https://..." o ciérralo manualmente.`});
         continue;
       }
       if(urlsActuales.has(urlCompleta)){
-        await comentarIssue(issue.number, `La URL \`${urlCompleta}\` ya está publicada en la lista de URLs exactas — no se requiere ninguna acción adicional. El dominio \`${domain}\` en sí nunca se bloquea, por ser hosting compartido.`);
-        await actualizarIssue(issue.number, {state:'closed', labels:['reporte-dominio','ya-publicado','solo-url']});
+        acciones.push({
+          numero: issue.number,
+          comentario: `La URL \`${urlCompleta}\` ya está publicada en la lista de URLs exactas, no se requiere ninguna acción adicional. El dominio \`${domain}\` en sí nunca se bloquea, por ser hosting compartido.`,
+          actualizacion: {state:'closed', labels:['reporte-dominio','ya-publicado','solo-url']}
+        });
         continue;
       }
 
@@ -375,34 +395,43 @@ async function main(){
       if(seConfirma){
         urlsActuales.add(urlCompleta);
         huboCambiosUrls = true;
-        await comentarIssue(issue.number, [
-          `✅ **Confirmado de forma independiente.** Se agrega la URL exacta \`${urlCompleta}\` a la lista de URLs bloqueadas.`,
-          '',
-          `⚠️ El dominio \`${domain}\` **no** se agrega a ningún archivo de DNS/firewall — es una plataforma de hosting compartido, y bloquear el dominio completo rompería el servicio para todos los demás usuarios. La URL exacta solo sirve para proxies con soporte de URL completa (Squid con url_regex) o extensiones de navegador, no para DNS.`,
-          '',
-          ...motoresConsultados
-        ].join('\n'));
-        await actualizarIssue(issue.number, {state:'closed', labels:['reporte-dominio','confirmado','solo-url']});
+        acciones.push({
+          numero: issue.number,
+          comentario: [
+            `✅ **Confirmado de forma independiente.** Se agrega la URL exacta \`${urlCompleta}\` a la lista de URLs bloqueadas.`,
+            '',
+            `⚠️ El dominio \`${domain}\` **no** se agrega a ningún archivo de DNS/firewall, es una plataforma de hosting compartido, y bloquear el dominio completo rompería el servicio para todos los demás usuarios. La URL exacta solo sirve para proxies con soporte de URL completa (Squid con url_regex) o extensiones de navegador, no para DNS.`,
+            '',
+            ...motoresConsultados
+          ].join('\n'),
+          actualizacion: {state:'closed', labels:['reporte-dominio','confirmado','solo-url']}
+        });
       }else{
         const motivo = urlscan.disponible
           ? 'urlscan.io no confirmó esta URL específica como maliciosa.'
-          : 'No hay clave de urlscan.io configurada como secret del repositorio (URLSCAN_API_KEY), o el escaneo de esta URL exacta falló — no se puede verificar de forma automática todavía.';
-        await comentarIssue(issue.number, [
-          `⏳ **No se confirma automáticamente todavía.** ${motivo}`,
-          '',
-          ...(motoresConsultados.length ? motoresConsultados : ['Ningún motor externo respondió sobre esta URL exacta.']),
-          '',
-          'Este reporte queda abierto para revisión manual.'
-        ].join('\n'));
-        await actualizarIssue(issue.number, {labels:['reporte-dominio','revision-manual','solo-url']});
+          : 'No hay clave de urlscan.io configurada como secret del repositorio (URLSCAN_API_KEY), o el escaneo de esta URL exacta falló, no se puede verificar de forma automática todavía.';
+        acciones.push({
+          numero: issue.number,
+          comentario: [
+            `⏳ **No se confirma automáticamente todavía.** ${motivo}`,
+            '',
+            ...(motoresConsultados.length ? motoresConsultados : ['Ningún motor externo respondió sobre esta URL exacta.']),
+            '',
+            'Este reporte queda abierto para revisión manual.'
+          ].join('\n'),
+          actualizacion: {labels:['reporte-dominio','revision-manual','solo-url']}
+        });
       }
       continue;
     }
 
     // ---- Caso normal: se puede bloquear el dominio completo ----
     if(setActual.has(domain)){
-      await comentarIssue(issue.number, `El dominio \`${domain}\` ya está publicado en la blacklist — no se requiere ninguna acción adicional.`);
-      await actualizarIssue(issue.number, {state:'closed', labels:['reporte-dominio','ya-publicado']});
+      acciones.push({
+        numero: issue.number,
+        comentario: `El dominio \`${domain}\` ya está publicado en la blacklist, no se requiere ninguna acción adicional.`,
+        actualizacion: {state:'closed', labels:['reporte-dominio','ya-publicado']}
+      });
       continue;
     }
 
@@ -419,24 +448,30 @@ async function main(){
     if(seConfirma){
       setActual.add(domain);
       huboCambios = true;
-      await comentarIssue(issue.number, [
-        `✅ **Confirmado de forma independiente** — se agrega \`${domain}\` a la blacklist pública, la zona DNS RPZ, la lista de Pi-hole y el alias de firewall.`,
-        '',
-        ...motoresConsultados
-      ].join('\n'));
-      await actualizarIssue(issue.number, {state:'closed', labels:['reporte-dominio','confirmado']});
+      acciones.push({
+        numero: issue.number,
+        comentario: [
+          `✅ **Confirmado de forma independiente.** Se agrega \`${domain}\` a la blacklist pública, la zona DNS RPZ, la lista de Pi-hole y el alias de firewall.`,
+          '',
+          ...motoresConsultados
+        ].join('\n'),
+        actualizacion: {state:'closed', labels:['reporte-dominio','confirmado']}
+      });
     }else{
       const motivo = (vt.disponible || urlscan.disponible)
         ? 'Los motores externos consultados no alcanzaron el consenso mínimo para confirmarlo automáticamente.'
-        : 'No hay claves de VirusTotal/urlscan.io configuradas como secrets del repositorio (VIRUSTOTAL_API_KEY / URLSCAN_API_KEY) — no se puede verificar de forma automática todavía.';
-      await comentarIssue(issue.number, [
-        `⏳ **No se confirma automáticamente todavía.** ${motivo}`,
-        '',
-        ...(motoresConsultados.length ? motoresConsultados : ['Ningún motor externo respondió.']),
-        '',
-        'Este reporte queda abierto para revisión manual. Si un analista confirma que es malicioso, agrégalo a mano a blacklist.txt o vuelve a etiquetar el issue una vez configuradas las claves de los motores externos.'
-      ].join('\n'));
-      await actualizarIssue(issue.number, {labels:['reporte-dominio','revision-manual']});
+        : 'No hay claves de VirusTotal/urlscan.io configuradas como secrets del repositorio (VIRUSTOTAL_API_KEY / URLSCAN_API_KEY), no se puede verificar de forma automática todavía.';
+      acciones.push({
+        numero: issue.number,
+        comentario: [
+          `⏳ **No se confirma automáticamente todavía.** ${motivo}`,
+          '',
+          ...(motoresConsultados.length ? motoresConsultados : ['Ningún motor externo respondió.']),
+          '',
+          'Este reporte queda abierto para revisión manual. Si un analista confirma que es malicioso, agrégalo a mano a blacklist.txt o vuelve a etiquetar el issue una vez configuradas las claves de los motores externos.'
+        ].join('\n'),
+        actualizacion: {labels:['reporte-dominio','revision-manual']}
+      });
     }
   }
 
@@ -446,6 +481,30 @@ async function main(){
   }else{
     console.log('Ningún dominio ni URL nuevo fue confirmado en esta pasada.');
   }
+
+  fs.writeFileSync(PLAN_FILE, JSON.stringify(acciones, null, 2));
+  console.log(`Plan de ${acciones.length} acción(es) sobre issues guardado (se aplica después de publicar).`);
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+async function aplicarPlan(){
+  if(!fs.existsSync(PLAN_FILE)){
+    console.log('No hay ningún plan de acciones pendiente que aplicar.');
+    return;
+  }
+  const acciones = JSON.parse(fs.readFileSync(PLAN_FILE, 'utf8'));
+  for(const a of acciones){
+    if(a.comentario) await comentarIssue(a.numero, a.comentario);
+    if(a.actualizacion) await actualizarIssue(a.numero, a.actualizacion);
+  }
+  fs.unlinkSync(PLAN_FILE);
+  console.log(`${acciones.length} acción(es) aplicadas sobre issues de GitHub.`);
+}
+
+const modo = process.argv[2] || 'todo';
+(async () => {
+  try{
+    if(modo === 'planificar') await planificar();
+    else if(modo === 'aplicar') await aplicarPlan();
+    else { await planificar(); await aplicarPlan(); }
+  }catch(err){ console.error(err); process.exit(1); }
+})();
