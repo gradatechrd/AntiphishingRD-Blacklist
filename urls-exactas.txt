@@ -1,4 +1,5 @@
 # URLs exactas confirmadas como maliciosas en plataformas de hosting
 # compartido (no se bloquea el dominio completo). Generado por
-# AntiPhishingRD (2026-09-11T05:02:43.922Z). Una URL por línea.
+# AntiPhishingRD (2026-09-11T07:29:25.960Z). Una URL por línea.
 https://raw.githubusercontent.com/Orukemer/successful/refs/heads/main/dpoamrI.txt
+https://res.cloudinary.com/zd8litqk/image/upload/v1788745964/img_215152.jpg
