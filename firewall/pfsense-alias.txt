@@ -1,5 +1,5 @@
 # Feed de dominios bloqueados para pfSense (pfBlockerNG DNSBL) y OPNsense
-# (bloqueador de dominios de Unbound). Generado por AntiPhishingRD (2026-09-11T14:13:26.708Z).
+# (bloqueador de dominios de Unbound). Generado por AntiPhishingRD (2026-09-11T14:47:40.486Z).
 02teste.cc
 0rder-ver1f2345.com
 1profitdeal.com
@@ -7,6 +7,7 @@ abilityindisabilityindia.org
 abrdokersignc.cfd
 accurateonlinelogin.top
 activar588.royalwebhosting.net
+adps.pro
 allegrolokalnie.nr-327439sm32.lol
 allegrolokalnie.pl74646.top
 alphapicaficagency.com
