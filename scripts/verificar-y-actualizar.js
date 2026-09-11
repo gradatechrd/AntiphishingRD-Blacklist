@@ -27,6 +27,7 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const [OWNER, REPO] = (process.env.GITHUB_REPOSITORY || '').split('/');
 const VT_KEY = process.env.VIRUSTOTAL_API_KEY || '';
 const URLSCAN_KEY = process.env.URLSCAN_API_KEY || '';
+const URLHAUS_KEY = process.env.URLHAUS_AUTH_KEY || '';
 const SOLO_ISSUE = process.env.SOLO_ISSUE_NUMERO || '';
 
 const GH_API = 'https://api.github.com';
@@ -181,10 +182,35 @@ async function consultarUrlscan(domain, urlCompleta){
   return {disponible:true, malicious: !!overall.malicious, score: overall.score || 0, flagged: !!overall.malicious};
 }
 
+// ---------------- URLhaus (abuse.ch) ----------------
+// A diferencia de VirusTotal/urlscan.io (que consultamos por dominio),
+// URLhaus está pensado exactamente para esto: verificar una URL exacta,
+// no un dominio completo. Por eso es la fuente principal para el caso de
+// hosting compartido, donde nunca queremos evaluar el dominio en general.
+async function consultarUrlhaus(urlCompleta){
+  if(!URLHAUS_KEY || !urlCompleta) return {disponible:false};
+  try{
+    const r = await fetch('https://urlhaus-api.abuse.ch/v1/url/', {
+      method:'POST',
+      headers:{'Auth-Key': URLHAUS_KEY, 'Content-Type':'application/x-www-form-urlencoded'},
+      body: `url=${encodeURIComponent(urlCompleta)}`
+    });
+    if(!r.ok) return {disponible:false};
+    const data = await r.json();
+    if(data.query_status !== 'ok') return {disponible:true, malicious:false, flagged:false, encontrado:false};
+    const enLinea = data.url_status === 'online';
+    return {disponible:true, malicious:true, flagged:true, encontrado:true, enLinea, amenaza: data.threat || 'malware'};
+  }catch(e){ return {disponible:false}; }
+}
+
 // ---------------- listas derivadas ----------------
 function leerLista(nombreArchivo){
   try{
-    return fs.readFileSync(nombreArchivo, 'utf8').split('\n').map(l => l.trim()).filter(Boolean);
+    // Ignora líneas vacías Y líneas de comentario (encabezados que el propio
+    // script agrega, como en urls-exactas.txt); si no se filtraran, cada
+    // corrida las volvería a guardar como si fueran URLs/dominios reales,
+    // y el encabezado se iría acumulando en vez de reemplazarse.
+    return fs.readFileSync(nombreArchivo, 'utf8').split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
   }catch(e){ return []; }
 }
 
@@ -385,12 +411,16 @@ async function planificar(){
       }
 
       console.log(`Verificando URL exacta ${urlCompleta} (dominio de hosting compartido: ${domain})…`);
-      const urlscan = await consultarUrlscan(domain, urlCompleta);
+      const [urlscan, urlhaus] = await Promise.all([consultarUrlscan(domain, urlCompleta), consultarUrlhaus(urlCompleta)]);
       const motoresConsultados = [];
       let motoresDeAcuerdo = 0;
       if(urlscan.disponible){ motoresConsultados.push(`urlscan.io sobre la URL exacta: veredicto ${urlscan.malicious ? 'MALICIOSO' : 'sin indicios'} (score ${urlscan.score}).`); if(urlscan.flagged) motoresDeAcuerdo++; }
+      if(urlhaus.disponible){
+        if(urlhaus.encontrado){ motoresConsultados.push(`Base de malware especializada: URL encontrada como amenaza (${urlhaus.amenaza}${urlhaus.enLinea ? ', aún activa' : ''}).`); if(urlhaus.flagged) motoresDeAcuerdo++; }
+        else { motoresConsultados.push('Base de malware especializada: sin coincidencias para esta URL.'); }
+      }
 
-      const seConfirma = motoresDeAcuerdo >= CFG.minMotoresExternosDeAcuerdo && urlscan.disponible;
+      const seConfirma = motoresDeAcuerdo >= CFG.minMotoresExternosDeAcuerdo && (urlscan.disponible || urlhaus.disponible);
 
       if(seConfirma){
         urlsActuales.add(urlCompleta);
@@ -407,9 +437,9 @@ async function planificar(){
           actualizacion: {state:'closed', labels:['reporte-dominio','confirmado','solo-url']}
         });
       }else{
-        const motivo = urlscan.disponible
-          ? 'urlscan.io no confirmó esta URL específica como maliciosa.'
-          : 'No hay clave de urlscan.io configurada como secret del repositorio (URLSCAN_API_KEY), o el escaneo de esta URL exacta falló, no se puede verificar de forma automática todavía.';
+        const motivo = (urlscan.disponible || urlhaus.disponible)
+          ? 'Ni urlscan.io ni la base de malware especializada confirmaron esta URL específica como maliciosa.'
+          : 'No hay claves configuradas como secrets del repositorio (URLSCAN_API_KEY / URLHAUS_AUTH_KEY), o la verificación de esta URL exacta falló; no se puede verificar de forma automática todavía.';
         acciones.push({
           numero: issue.number,
           comentario: [
