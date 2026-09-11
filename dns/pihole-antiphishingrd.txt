@@ -1,4 +1,4 @@
-# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-11T02:43:53.350Z).
+# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-11T02:47:07.858Z).
 0.0.0.0 02teste.cc
 0.0.0.0 1profitdeal.com
 0.0.0.0 abilityindisabilityindia.org
@@ -12,6 +12,7 @@
 0.0.0.0 beseest.com
 0.0.0.0 buathaisushi.com
 0.0.0.0 carlislefi.com
+0.0.0.0 lively-fog-af49.pablosoftwareplus.workers.dev
 0.0.0.0 loop-lumen.com
 0.0.0.0 nextside.cfd
 0.0.0.0 pub-d21b4190a47f45628c828456f23dd66e.r2.dev

@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789094633 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789094827 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-11T02:43:53.350Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-11T02:47:07.858Z). No editar a mano.
 02teste.cc CNAME .
 1profitdeal.com CNAME .
 abilityindisabilityindia.org CNAME .
@@ -15,6 +15,7 @@ banrsserrvsasresumined.royalwebhosting.net CNAME .
 beseest.com CNAME .
 buathaisushi.com CNAME .
 carlislefi.com CNAME .
+lively-fog-af49.pablosoftwareplus.workers.dev CNAME .
 loop-lumen.com CNAME .
 nextside.cfd CNAME .
 pub-d21b4190a47f45628c828456f23dd66e.r2.dev CNAME .
