@@ -1,4 +1,4 @@
-# Script RouterOS. Generado por AntiPhishingRD (2026-09-11T03:36:52.307Z).
+# Script RouterOS. Generado por AntiPhishingRD (2026-09-11T03:38:52.442Z).
 # Importar con: /import file-name=mikrotik-antiphishingrd.rsc
 /ip dns static
 add name=02teste.cc type=A address=0.0.0.0 comment="AntiPhishingRD"
@@ -20,5 +20,6 @@ add name=lively-fog-af49.pablosoftwareplus.workers.dev type=A address=0.0.0.0 co
 add name=loop-lumen.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=nextside.cfd type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=pub-d21b4190a47f45628c828456f23dd66e.r2.dev type=A address=0.0.0.0 comment="AntiPhishingRD"
+add name=qqwwaa.tos-cn-hongkong.volces.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=software-gateway.click type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=www.abelmomaroc.com type=A address=0.0.0.0 comment="AntiPhishingRD"
