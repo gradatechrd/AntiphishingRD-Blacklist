@@ -1,34 +1,32 @@
 name: Verificar reportes y actualizar blacklist/DNS/firewall
 
-# Este workflow es lo que hace que la blacklist, la zona DNS y el alias de
-# firewall se actualicen SOLOS: cada vez que alguien reporta un dominio desde
-# AntiPhishingRD (o cada pocas horas, por si quedó algo pendiente), este
-# workflow vuelve a verificar el dominio contra VirusTotal y urlscan.io antes
-# de publicarlo. Ningún dominio se agrega solo porque un usuario lo reportó.
-#
-# Vive en el repositorio de la BLACKLIST (no en el del sitio), junto con
-# blacklist.txt. Copia también la carpeta scripts/ a ese repositorio.
-
 on:
   issues:
     types: [opened, labeled, reopened]
   schedule:
-    - cron: '0 */6 * * *'   # reintenta cada 6 horas por si algo quedó pendiente
-  workflow_dispatch: {}      # botón "Run workflow" para forzar una pasada manual
+    - cron: '*/15 * * * *'   # también corre solo cada 15 minutos, por si algún issue quedó pendiente
+  workflow_dispatch:
+    inputs:
+      solo_issue:
+        description: 'Número de un issue específico a procesar (opcional, vacío = todos los pendientes)'
+        required: false
 
-permissions:
-  contents: write
-  issues: write
+# Evita que dos ejecuciones corran al mismo tiempo e intenten subir cambios
+# a la vez (eso es justo lo que causó el error "rejected... fetch first").
+# Las ejecuciones nuevas esperan a que termine la anterior, en vez de pisarse.
+concurrency:
+  group: verificar-y-publicar
+  cancel-in-progress: false
 
 jobs:
   verificar-y-publicar:
-    if: github.event_name != 'issues' || contains(github.event.issue.labels.*.name, 'reporte-dominio')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
     steps:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
@@ -41,17 +39,18 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
           URLSCAN_API_KEY: ${{ secrets.URLSCAN_API_KEY }}
-          SOLO_ISSUE_NUMERO: ${{ github.event_name == 'issues' && github.event.issue.number || '' }}
+          SOLO_ISSUE_NUMERO: ${{ github.event.inputs.solo_issue || (github.event.issue && github.event.issue.number) || '' }}
         run: node scripts/verificar-y-actualizar.js
 
       - name: Confirmar y subir cambios en las listas
         run: |
           git config user.name "antiphishingrd-bot"
-          git config user.email "actions@users.noreply.github.com"
-          if ! git diff --quiet; then
-            git add blacklist.txt dns/ firewall/ 2>/dev/null || true
-            git commit -m "chore: actualizar listas verificadas [skip ci]"
-            git push
-          else
-            echo "Sin cambios verificados en esta pasada."
-          fi
+          git config user.email "antiphishingrd-bot@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: actualizar listas verificadas [skip ci]" || echo "Nada que commitear"
+          for i in 1 2 3 4 5; do
+            git push && break
+            echo "Push rechazado (otra ejecución subió cambios primero). Sincronizando y reintentando…"
+            git pull --rebase --autostash
+            sleep 3
+          done
