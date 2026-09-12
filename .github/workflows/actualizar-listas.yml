@@ -11,9 +11,6 @@ on:
         description: 'Número de un issue específico a procesar (opcional, vacío = todos los pendientes)'
         required: false
 
-# Evita que dos ejecuciones corran al mismo tiempo e intenten subir cambios
-# a la vez (eso es justo lo que causó el error "rejected... fetch first").
-# Las ejecuciones nuevas esperan a que termine la anterior, en vez de pisarse.
 concurrency:
   group: verificar-y-publicar
   cancel-in-progress: false
