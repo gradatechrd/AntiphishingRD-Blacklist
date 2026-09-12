@@ -1,23 +1,3 @@
-/**
- * verificar-y-actualizar.js
- * ---------------------------------------------------------------
- * Ejecutado por .github/workflows/actualizar-listas.yml
- *
- * Qué hace, en orden:
- *  1. Lee los issues abiertos con la etiqueta "reporte-dominio" (creados por
- *     el botón "Reportar" del sitio, o abiertos manualmente).
- *  2. Para cada uno, vuelve a verificar el dominio de forma INDEPENDIENTE
- *     contra VirusTotal y urlscan.io — nunca confía solo en lo que dijo el
- *     navegador de quien reportó.
- *  3. Si suficientes motores externos coinciden en que es malicioso, agrega
- *     el dominio a blacklist.txt y regenera dns/rpz-antiphishingrd.txt,
- *     dns/pihole-antiphishingrd.txt y firewall/pfsense-alias.txt.
- *  4. Comenta y cierra el issue si se confirmó; si no, lo deja abierto
- *     marcado para revisión manual y explica por qué no se confirmó.
- *
- * Requiere Node 20+ (usa fetch nativo). No usa dependencias externas.
- */
-
 const fs = require('fs');
 const path = require('path');
 
@@ -32,13 +12,6 @@ const SOLO_ISSUE = process.env.SOLO_ISSUE_NUMERO || '';
 
 const GH_API = 'https://api.github.com';
 
-// Dominios de proveedores reconocidos que NUNCA se agregan a la blacklist,
-// sin importar qué diga VirusTotal/urlscan.io ni quién haya abierto el issue.
-// Esta es la última barrera: protege contra un actor malicioso que intente
-// reportar un dominio legítimo (google.com, microsoft.com, etc.) para
-// sabotearlo y bloquear servicios/operaciones de negocio reales. Cubre el
-// dominio y cualquier subdominio. Mantén esta lista igual a TRUSTED_DOMAINS
-// en checker.js del sitio.
 const TRUSTED_DOMAINS = [
   'google.com', 'youtube.com', 'gmail.com', 'googleapis.com', 'gstatic.com',
   'microsoft.com', 'office.com', 'live.com', 'outlook.com', 'sharepoint.com', 'onedrive.com', 'azure.com',
@@ -54,10 +27,6 @@ function esDominioDeConfianza(domain){
   return TRUSTED_DOMAINS.find(d => domain === d || domain.endsWith('.' + d)) || null;
 }
 
-// Plataformas de hosting/CDN compartido: si algo malicioso aparece bajo uno
-// de estos dominios, nunca se bloquea el dominio completo (rompería el
-// servicio para todo el mundo) — solo la URL exacta. Mantén esta lista
-// igual a SHARED_HOSTING_DOMAINS en checker.js y server.js.
 const SHARED_HOSTING_DOMAINS = [
   'cloudinary.com', 'imgur.com', 'ibb.co', 'postimg.cc',
   'discord.com', 'discordapp.com', 'cdn.discordapp.com', 'media.discordapp.net',
@@ -124,7 +93,6 @@ function tieneAprobacionManual(issue){
   return nombres.includes('aprobado-manual') || nombres.includes('confirmado');
 }
 
-// ---------------- VirusTotal ----------------
 async function consultarVirusTotal(domain){
   if(!VT_KEY) return {disponible:false};
   try{
@@ -141,7 +109,6 @@ async function consultarVirusTotal(domain){
   }catch(e){ return {disponible:false}; }
 }
 
-// ---------------- urlscan.io ----------------
 async function buscarUrlscanExistente(domain){
   try{
     const headers = URLSCAN_KEY ? {'API-Key': URLSCAN_KEY} : {};
@@ -176,9 +143,7 @@ async function enviarNuevoUrlscan(domain, urlCompleta){
 }
 
 async function consultarUrlscan(domain, urlCompleta){
-  // Si tenemos la URL exacta (caso de hosting compartido), no reutilizamos
-  // un escaneo viejo del dominio en general — puede haber evaluado otra
-  // página distinta del mismo sitio. Vamos directo a escanear esa URL.
+
   let resultado = urlCompleta ? null : await buscarUrlscanExistente(domain);
   if(!resultado) resultado = await enviarNuevoUrlscan(domain, urlCompleta);
   if(!resultado) return {disponible:false};
@@ -187,11 +152,6 @@ async function consultarUrlscan(domain, urlCompleta){
   return {disponible:true, malicious: !!overall.malicious, score: overall.score || 0, flagged: !!overall.malicious};
 }
 
-// ---------------- URLhaus (abuse.ch) ----------------
-// A diferencia de VirusTotal/urlscan.io (que consultamos por dominio),
-// URLhaus está pensado exactamente para esto: verificar una URL exacta,
-// no un dominio completo. Por eso es la fuente principal para el caso de
-// hosting compartido, donde nunca queremos evaluar el dominio en general.
 async function consultarUrlhaus(urlCompleta){
   if(!URLHAUS_KEY || !urlCompleta) return {disponible:false};
   try{
@@ -208,13 +168,9 @@ async function consultarUrlhaus(urlCompleta){
   }catch(e){ return {disponible:false}; }
 }
 
-// ---------------- listas derivadas ----------------
 function leerLista(nombreArchivo){
   try{
-    // Ignora líneas vacías Y líneas de comentario (encabezados que el propio
-    // script agrega, como en urls-exactas.txt); si no se filtraran, cada
-    // corrida las volvería a guardar como si fueran URLs/dominios reales,
-    // y el encabezado se iría acumulando en vez de reemplazarse.
+  
     return fs.readFileSync(nombreArchivo, 'utf8').split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
   }catch(e){ return []; }
 }
@@ -225,9 +181,7 @@ function asegurarCarpeta(nombreArchivo){
 }
 
 function regenerarListasDerivadas(dominios, urlsCompletas){
-  // Filtro de seguridad final: aunque un dominio de confianza se haya
-  // colado a la lista por cualquier otra vía, nunca se escribe a los
-  // archivos publicados.
+
   const sinProtegidos = dominios.filter(d => !esDominioDeConfianza(d));
   const excluidos = dominios.filter(d => esDominioDeConfianza(d));
   if(excluidos.length){
@@ -236,15 +190,9 @@ function regenerarListasDerivadas(dominios, urlsCompletas){
   const ordenados = [...new Set(sinProtegidos)].sort();
   const fecha = new Date().toISOString();
 
-  // ---- Fuente principal: un dominio por línea ----
-  // También sirve tal cual como feed para FortiGate (Threat Feeds > Domain
-  // Name), Palo Alto (External Dynamic List de dominios), Cisco Umbrella
-  // (Custom Destination List) y NextDNS (Denylist): las cuatro aceptan una
-  // URL con un dominio por línea, sin ningún formato especial.
   asegurarCarpeta(CFG.archivos.blacklist);
   fs.writeFileSync(CFG.archivos.blacklist, ordenados.join('\n') + '\n');
 
-  // ---- BIND / Windows Server DNS (zona RPZ) ----
   asegurarCarpeta(CFG.archivos.dnsRpz);
   const rpz = [
     `$TTL 300`,
@@ -256,7 +204,6 @@ function regenerarListasDerivadas(dominios, urlsCompletas){
   ].join('\n');
   fs.writeFileSync(CFG.archivos.dnsRpz, rpz);
 
-  // ---- Unbound nativo (sin módulo RPZ) ----
   asegurarCarpeta(CFG.archivos.unbound);
   const unbound = [
     `# Bloqueo nativo para Unbound (sin módulo RPZ). Generado por AntiPhishingRD (${fecha}).`,
@@ -266,7 +213,6 @@ function regenerarListasDerivadas(dominios, urlsCompletas){
   ].join('\n');
   fs.writeFileSync(CFG.archivos.unbound, unbound);
 
-  // ---- Pi-hole (formato hosts) ----
   asegurarCarpeta(CFG.archivos.pihole);
   const pihole = [
     `# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (${fecha}).`,
@@ -275,7 +221,6 @@ function regenerarListasDerivadas(dominios, urlsCompletas){
   ].join('\n');
   fs.writeFileSync(CFG.archivos.pihole, pihole);
 
-  // ---- AdGuard Home (sintaxis adblock nativa) ----
   asegurarCarpeta(CFG.archivos.adguard);
   const adguard = [
     `! Lista AdGuard Home (sintaxis adblock). Generado por AntiPhishingRD (${fecha}).`,
@@ -285,7 +230,6 @@ function regenerarListasDerivadas(dominios, urlsCompletas){
   ].join('\n');
   fs.writeFileSync(CFG.archivos.adguard, adguard);
 
-  // ---- dnsmasq ----
   asegurarCarpeta(CFG.archivos.dnsmasq);
   const dnsmasq = [
     `# Bloqueo para dnsmasq. Generado por AntiPhishingRD (${fecha}).`,
@@ -295,7 +239,6 @@ function regenerarListasDerivadas(dominios, urlsCompletas){
   ].join('\n');
   fs.writeFileSync(CFG.archivos.dnsmasq, dnsmasq);
 
-  // ---- pfSense / OPNsense / pfBlockerNG (lista simple para feed personalizado) ----
   asegurarCarpeta(CFG.archivos.firewall);
   const fw = [
     `# Feed de dominios bloqueados para pfSense (pfBlockerNG DNSBL) y OPNsense`,
@@ -305,7 +248,6 @@ function regenerarListasDerivadas(dominios, urlsCompletas){
   ].join('\n');
   fs.writeFileSync(CFG.archivos.firewall, fw);
 
-  // ---- MikroTik RouterOS (script listo para importar) ----
   asegurarCarpeta(CFG.archivos.mikrotik);
   const mikrotik = [
     `# Script RouterOS. Generado por AntiPhishingRD (${fecha}).`,
@@ -316,7 +258,6 @@ function regenerarListasDerivadas(dominios, urlsCompletas){
   ].join('\n');
   fs.writeFileSync(CFG.archivos.mikrotik, mikrotik);
 
-  // ---- Squid proxy (ACL dstdomain) ----
   asegurarCarpeta(CFG.archivos.squid);
   const squid = [
     `# ACL dstdomain para Squid. Generado por AntiPhishingRD (${fecha}).`,
@@ -327,11 +268,6 @@ function regenerarListasDerivadas(dominios, urlsCompletas){
   ].join('\n');
   fs.writeFileSync(CFG.archivos.squid, squid);
 
-  // ---- URLs completas (hosting compartido: NUNCA se bloquea el dominio) ----
-  // El DNS no puede filtrar por ruta, solo por dominio — por eso estas URLs
-  // no aparecen en ninguno de los archivos de arriba. Sirven para un proxy
-  // con soporte de URL completa (Squid con url_regex, un WAF, o una
-  // extensión de navegador con lista de bloqueo), nunca para DNS/firewall.
   if(CFG.archivos.blacklistUrls){
     const urlsOrdenadas = [...new Set(urlsCompletas || [])].sort();
     asegurarCarpeta(CFG.archivos.blacklistUrls);
@@ -345,19 +281,7 @@ function regenerarListasDerivadas(dominios, urlsCompletas){
     fs.writeFileSync(CFG.archivos.blacklistUrls, urlsTxt);
   }
 }
-// ---------------- proceso principal ----------------
-// Separado en dos fases para que sea seguro reintentar el push sin perder
-// ni duplicar nada:
-//   1) planificar(): decide qué hacer con cada issue y regenera los
-//      archivos de listas, NUNCA toca los issues de GitHub todavía.
-//      Se puede volver a correr tantas veces como haga falta (por ejemplo
-//      si el primer intento de "git push" fue rechazado).
-//   2) aplicarPlan(): solo se corre UNA VEZ, después de que el push a
-//      GitHub ya se confirmó exitoso. Recién ahí comenta y cierra los
-//      issues de verdad.
-// Antes, ambos pasos ocurrían juntos, así que si el push fallaba y se
-// reintentaba, un issue que ya se había cerrado en el intento anterior no
-// se volvía a procesar, y su dominio/URL se perdía en silencio.
+
 const PLAN_FILE = path.join(require('os').tmpdir(), 'antiphishingrd-plan-issues.json');
 
 async function planificar(){
@@ -400,9 +324,6 @@ async function planificar(){
     const soloUrl = esSoloUrl(issue.body) || !!esHostingCompartido(domain);
     const urlCompleta = extraerUrlCompleta(issue.body);
 
-    // ---- Aprobación manual: un administrador revisó el reporte y agregó
-    // la etiqueta "aprobado-manual" al issue. Se publica directo, sin
-    // depender de que los motores externos lo confirmen por su cuenta. ----
     if(tieneAprobacionManual(issue)){
       if(soloUrl){
         if(!urlCompleta){
@@ -432,7 +353,6 @@ async function planificar(){
       continue;
     }
 
-    // ---- Caso: hosting compartido, solo se bloquea la URL exacta ----
     if(soloUrl){
       if(!urlCompleta){
         acciones.push({numero: issue.number, comentario: `\`${domain}\` es una plataforma de hosting compartido, pero no se pudo leer la URL exacta en este reporte. Edítalo con el formato "URL analizada: https://..." o ciérralo manualmente.`});
@@ -487,7 +407,6 @@ async function planificar(){
       continue;
     }
 
-    // ---- Caso normal: se puede bloquear el dominio completo ----
     if(setActual.has(domain)){
       acciones.push({
         numero: issue.number,
