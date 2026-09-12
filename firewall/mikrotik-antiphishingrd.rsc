@@ -1,4 +1,4 @@
-# Script RouterOS. Generado por AntiPhishingRD (2026-09-12T23:29:11.205Z).
+# Script RouterOS. Generado por AntiPhishingRD (2026-09-12T23:59:29.309Z).
 # Importar con: /import file-name=mikrotik-antiphishingrd.rsc
 /ip dns static
 add name=02teste.cc type=A address=0.0.0.0 comment="AntiPhishingRD"
@@ -39,3 +39,4 @@ add name=scooter.cozyvistany.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=software-gateway.click type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=waveplus.mediabyte.be type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=www.abelmomaroc.com type=A address=0.0.0.0 comment="AntiPhishingRD"
+add name=www.okhan.net type=A address=0.0.0.0 comment="AntiPhishingRD"
