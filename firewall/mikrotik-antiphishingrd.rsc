@@ -1,4 +1,4 @@
-# Script RouterOS. Generado por AntiPhishingRD (2026-09-13T15:14:46.047Z).
+# Script RouterOS. Generado por AntiPhishingRD (2026-09-13T19:34:23.719Z).
 # Importar con: /import file-name=mikrotik-antiphishingrd.rsc
 /ip dns static
 add name=02teste.cc type=A address=0.0.0.0 comment="AntiPhishingRD"
@@ -31,6 +31,7 @@ add name=loop-lumen.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=loveher.dpdns.org type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=mail.quietsurfwi.help type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=nextside.cfd type=A address=0.0.0.0 comment="AntiPhishingRD"
+add name=pay.aqiu6.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=pdf-editore.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=pdfmun.software type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=pub-d21b4190a47f45628c828456f23dd66e.r2.dev type=A address=0.0.0.0 comment="AntiPhishingRD"
