@@ -1,4 +1,4 @@
-# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-12T23:59:29.309Z).
+# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-13T15:14:46.047Z).
 0.0.0.0 02teste.cc
 0.0.0.0 0rder-ver1f2345.com
 0.0.0.0 1profitdeal.com
@@ -12,6 +12,7 @@
 0.0.0.0 alphapicaficagency.com
 0.0.0.0 api.cdn22.net
 0.0.0.0 attach.66rpg.com
+0.0.0.0 attach.mail.daum.net
 0.0.0.0 banrsserrvsasresumined.royalwebhosting.net
 0.0.0.0 beseest.com
 0.0.0.0 buathaisushi.com
