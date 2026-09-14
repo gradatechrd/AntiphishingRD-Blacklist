@@ -4,7 +4,7 @@ on:
   issues:
     types: [opened, labeled, reopened]
   schedule:
-    - cron: '*/15 * * * *'   # también corre solo cada 15 minutos, por si algún issue quedó pendiente
+    - cron: '*/15 * * * *'   
   workflow_dispatch:
     inputs:
       solo_issue:
