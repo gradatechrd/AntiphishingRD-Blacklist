@@ -1,4 +1,4 @@
-# Script RouterOS. Generado por AntiPhishingRD (2026-09-14T02:31:10.891Z).
+# Script RouterOS. Generado por AntiPhishingRD (2026-09-14T02:45:10.574Z).
 # Importar con: /import file-name=mikrotik-antiphishingrd.rsc
 /ip dns static
 add name=02teste.cc type=A address=0.0.0.0 comment="AntiPhishingRD"
@@ -39,6 +39,7 @@ add name=pdfmun.software type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=pub-d21b4190a47f45628c828456f23dd66e.r2.dev type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=qqwwaa.tos-cn-hongkong.volces.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=quietsurfwi.help type=A address=0.0.0.0 comment="AntiPhishingRD"
+add name=ryo.gamer.free type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=scooter.cozyvistany.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=software-gateway.click type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=vgd.vg type=A address=0.0.0.0 comment="AntiPhishingRD"

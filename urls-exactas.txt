@@ -1,6 +1,6 @@
 # URLs exactas confirmadas como maliciosas en plataformas de hosting
 # compartido (no se bloquea el dominio completo). Generado por
-# AntiPhishingRD (2026-09-14T02:31:10.891Z). Una URL por línea.
+# AntiPhishingRD (2026-09-14T02:45:10.574Z). Una URL por línea.
 https://f110e593-4567-4db4-811b-4ffa866aa185-00-2hpprl0z5sooi.reed.replit.dev/
 https://page-instagram.vercel.app/
 https://raw.githubusercontent.com/Orukemer/successful/refs/heads/main/dpoamrI.txt
