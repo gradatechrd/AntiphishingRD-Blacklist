@@ -4,13 +4,21 @@ on:
   issues:
     types: [opened, labeled, reopened]
   schedule:
-    - cron: '*/15 * * * *'   
+    - cron: '*/15 * * * *'   # también corre solo cada 15 minutos, por si algún issue quedó pendiente
   workflow_dispatch:
     inputs:
       solo_issue:
         description: 'Número de un issue específico a procesar (opcional, vacío = todos los pendientes)'
         required: false
-
+      accion:
+        description: 'Qué hacer en esta ejecución manual'
+        required: false
+        type: choice
+        default: 'procesar'
+        options:
+          - procesar
+          - resincronizar
+          
 concurrency:
   group: verificar-y-publicar
   cancel-in-progress: false
@@ -27,6 +35,8 @@ jobs:
       VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
       URLSCAN_API_KEY: ${{ secrets.URLSCAN_API_KEY }}
       URLHAUS_AUTH_KEY: ${{ secrets.URLHAUS_AUTH_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       SOLO_ISSUE_NUMERO: ${{ github.event.inputs.solo_issue || (github.event.issue && github.event.issue.number) || '' }}
     steps:
       - name: Descargar el repositorio
@@ -38,6 +48,7 @@ jobs:
           node-version: '20'
 
       - name: Verificar dominios, regenerar listas y publicar
+        if: github.event.inputs.accion != 'resincronizar'
         run: |
           git config user.name "antiphishingrd-bot"
           git config user.email "antiphishingrd-bot@users.noreply.github.com"
@@ -69,5 +80,25 @@ jobs:
           fi
 
       - name: Comentar y cerrar los issues ya publicados
-        if: success()
+        if: success() && github.event.inputs.accion != 'resincronizar'
         run: node scripts/verificar-y-actualizar.js aplicar
+
+      - name: Resincronizar listas derivadas (después de una edición manual)
+        if: github.event.inputs.accion == 'resincronizar'
+        run: |
+          git config user.name "antiphishingrd-bot"
+          git config user.email "antiphishingrd-bot@users.noreply.github.com"
+
+          for i in 1 2 3 4 5; do
+            node scripts/verificar-y-actualizar.js resincronizar
+            git add -A
+            git commit -m "chore: resincronizar listas derivadas [skip ci]" || echo "Nada que commitear"
+            if git push; then
+              echo "Resincronizado y publicado correctamente."
+              break
+            fi
+            echo "Push rechazado, sincronizando con el remoto y reintentando…"
+            git fetch origin main
+            git reset --hard origin/main
+            sleep 3
+          done
