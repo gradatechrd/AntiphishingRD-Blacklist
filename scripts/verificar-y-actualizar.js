@@ -27,6 +27,13 @@ function esDominioDeConfianza(domain){
   return TRUSTED_DOMAINS.find(d => domain === d || domain.endsWith('.' + d)) || null;
 }
 
+function dominioExcluidoPorPolitica(domain){
+  if(/\.do$/i.test(domain)) return 'un dominio .do (República Dominicana)';
+  if(/\.gov$/i.test(domain)) return 'un dominio gubernamental (.gov)';
+  if(/\.(gob|gov)\.[a-z]{2,}$/i.test(domain)) return 'un dominio gubernamental';
+  return null;
+}
+
 const SHARED_HOSTING_DOMAINS = [
   'cloudinary.com', 'imgur.com', 'ibb.co', 'postimg.cc',
   'discord.com', 'discordapp.com', 'cdn.discordapp.com', 'media.discordapp.net',
@@ -339,6 +346,20 @@ async function planificar(){
           'Este dominio nunca se agrega a la blacklist automáticamente, sin importar el resultado de los motores externos. Esto protege contra reportes maliciosos que busquen bloquear un servicio legítimo. Si de verdad detectaste phishing alojado bajo este proveedor (por ejemplo, una página fraudulenta en un subdominio de hosting gratuito), repórtalo directamente al proveedor además de aquí.'
         ].join('\n'),
         actualizacion: {state:'closed', title: `🛡️ Protegido: ${domain}`, labels:['reporte-dominio','dominio-protegido']}
+      });
+      continue;
+    }
+
+    const politica = dominioExcluidoPorPolitica(domain);
+    if(politica){
+      acciones.push({
+        numero: issue.number,
+        comentario: [
+          `🛡️ **Excluido por política, no se procesa.** \`${domain}\` es ${politica}.`,
+          '',
+          'Por política del proyecto, este tipo de dominio nunca se agrega a la blacklist, sin importar el puntaje ni las etiquetas del issue (incluida "aprobado-manual").'
+        ].join('\n'),
+        actualizacion: {state:'closed', title: `🛡️ Excluido por política: ${domain}`, labels:['reporte-dominio','dominio-protegido']}
       });
       continue;
     }
