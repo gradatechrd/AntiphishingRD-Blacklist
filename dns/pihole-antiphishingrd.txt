@@ -1,4 +1,4 @@
-# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-14T04:17:28.729Z).
+# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-14T13:01:04.009Z).
 0.0.0.0 02teste.cc
 0.0.0.0 0rder-ver1f2345.com
 0.0.0.0 1profitdeal.com
@@ -21,6 +21,7 @@
 0.0.0.0 curlservice.com
 0.0.0.0 download.pocketbitcoindesktop.com
 0.0.0.0 dropboxb3.duckdns.org
+0.0.0.0 freeapphub.tech
 0.0.0.0 globalsupportupdate.top
 0.0.0.0 icy-lab-0431.guilherme-telecomunicacoes2024.workers.dev
 0.0.0.0 iloveboats.st
