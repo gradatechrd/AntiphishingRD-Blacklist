@@ -41,6 +41,28 @@ function esHostingCompartido(domain){
   return SHARED_HOSTING_DOMAINS.find(d => domain === d || domain.endsWith('.' + d)) || null;
 }
 
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+async function sincronizarSupabase(filtroQuery, cambios){
+  if(!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return;
+  try{
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/reports?${filtroQuery}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(cambios)
+    });
+    if(!r.ok) console.error(`Supabase respondió ${r.status} al sincronizar (${filtroQuery})`);
+  }catch(e){
+    console.error(`No se pudo sincronizar con Supabase (${filtroQuery}):`, e.message);
+  }
+}
+
 function ghHeaders(){
   return {
     'Authorization': `Bearer ${GITHUB_TOKEN}`,
@@ -132,7 +154,7 @@ async function enviarNuevoUrlscan(domain, urlCompleta){
     if(!submit.ok) return null;
     const { api } = await submit.json();
     if(!api) return null;
-    // urlscan.io tarda ~10-20s en procesar; reintenta unas pocas veces.
+    
     for(let i=0;i<6;i++){
       await new Promise(res => setTimeout(res, 8000));
       const r = await fetch(api, {headers:{'API-Key': URLSCAN_KEY}});
@@ -143,7 +165,7 @@ async function enviarNuevoUrlscan(domain, urlCompleta){
 }
 
 async function consultarUrlscan(domain, urlCompleta){
-
+  
   let resultado = urlCompleta ? null : await buscarUrlscanExistente(domain);
   if(!resultado) resultado = await enviarNuevoUrlscan(domain, urlCompleta);
   if(!resultado) return {disponible:false};
@@ -170,7 +192,7 @@ async function consultarUrlhaus(urlCompleta){
 
 function leerLista(nombreArchivo){
   try{
-  
+
     return fs.readFileSync(nombreArchivo, 'utf8').split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
   }catch(e){ return []; }
 }
@@ -332,6 +354,7 @@ async function planificar(){
         }
         urlsActuales.add(urlCompleta);
         huboCambiosUrls = true;
+        await sincronizarSupabase(`full_url=eq.${encodeURIComponent(urlCompleta)}`, {verdict:'malicious', estado_confirmacion:'confirmado'});
         acciones.push({
           numero: issue.number,
           comentario: [
@@ -344,6 +367,7 @@ async function planificar(){
       }else{
         setActual.add(domain);
         huboCambios = true;
+        await sincronizarSupabase(`host=eq.${encodeURIComponent(domain)}`, {verdict:'malicious', estado_confirmacion:'confirmado'});
         acciones.push({
           numero: issue.number,
           comentario: `✅ **Aprobado manualmente.** Se agrega \`${domain}\` a la blacklist pública, la zona DNS RPZ, la lista de Pi-hole y el alias de firewall.`,
@@ -359,6 +383,7 @@ async function planificar(){
         continue;
       }
       if(urlsActuales.has(urlCompleta)){
+        await sincronizarSupabase(`full_url=eq.${encodeURIComponent(urlCompleta)}`, {verdict:'malicious', estado_confirmacion:'confirmado'});
         acciones.push({
           numero: issue.number,
           comentario: `La URL \`${urlCompleta}\` ya está publicada en la lista de URLs exactas, no se requiere ninguna acción adicional. El dominio \`${domain}\` en sí nunca se bloquea, por ser hosting compartido.`,
@@ -384,6 +409,7 @@ async function planificar(){
       if(seConfirma){
         urlsActuales.add(urlCompleta);
         huboCambiosUrls = true;
+        await sincronizarSupabase(`full_url=eq.${encodeURIComponent(urlCompleta)}`, {verdict:'malicious', estado_confirmacion:'confirmado'});
         acciones.push({
           numero: issue.number,
           comentario: [
@@ -408,6 +434,7 @@ async function planificar(){
     }
 
     if(setActual.has(domain)){
+      await sincronizarSupabase(`host=eq.${encodeURIComponent(domain)}`, {verdict:'malicious', estado_confirmacion:'confirmado'});
       acciones.push({
         numero: issue.number,
         comentario: `El dominio \`${domain}\` ya está publicado en la blacklist, no se requiere ninguna acción adicional.`,
@@ -434,6 +461,7 @@ async function planificar(){
     if(seConfirma){
       setActual.add(domain);
       huboCambios = true;
+      await sincronizarSupabase(`host=eq.${encodeURIComponent(domain)}`, {verdict:'malicious', estado_confirmacion:'confirmado'});
       acciones.push({
         numero: issue.number,
         comentario: `✅ **Confirmado de forma independiente.** Se agrega \`${domain}\` a la blacklist pública, la zona DNS RPZ, la lista de Pi-hole y el alias de firewall.`,
@@ -477,11 +505,19 @@ async function aplicarPlan(){
   console.log(`${acciones.length} acción(es) aplicadas sobre issues de GitHub.`);
 }
 
+async function resincronizar(){
+  const dominios = leerLista(CFG.archivos.blacklist);
+  const urls = CFG.archivos.blacklistUrls ? leerLista(CFG.archivos.blacklistUrls) : [];
+  regenerarListasDerivadas(dominios, urls);
+  console.log(`Listas regeneradas a partir de ${dominios.length} dominio(s) y ${urls.length} URL(s) ya existentes.`);
+}
+
 const modo = process.argv[2] || 'todo';
 (async () => {
   try{
     if(modo === 'planificar') await planificar();
     else if(modo === 'aplicar') await aplicarPlan();
+    else if(modo === 'resincronizar') await resincronizar();
     else { await planificar(); await aplicarPlan(); }
   }catch(err){ console.error(err); process.exit(1); }
 })();
