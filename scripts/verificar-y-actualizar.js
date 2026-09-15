@@ -78,14 +78,32 @@ function ghHeaders(){
   };
 }
 
+function tieneEtiqueta(issue, nombreEtiqueta){
+  return (issue.labels || []).some(l => (typeof l === 'string' ? l : l.name) === nombreEtiqueta);
+}
+
 async function listaDeIssuesReportados(){
   if(SOLO_ISSUE){
     const r = await fetch(`${GH_API}/repos/${OWNER}/${REPO}/issues/${SOLO_ISSUE}`, {headers: ghHeaders()});
     if(!r.ok) return [];
     const issue = await r.json();
-    return issue.state === 'open' ? [issue] : [];
+    if(issue.state !== 'open' || !tieneEtiqueta(issue, 'reporte-dominio')) return [];
+    return [issue];
   }
   const r = await fetch(`${GH_API}/repos/${OWNER}/${REPO}/issues?labels=reporte-dominio&state=open&per_page=50`, {headers: ghHeaders()});
+  if(!r.ok) return [];
+  return r.json();
+}
+
+async function listaDeIssuesFalsosPositivos(){
+  if(SOLO_ISSUE){
+    const r = await fetch(`${GH_API}/repos/${OWNER}/${REPO}/issues/${SOLO_ISSUE}`, {headers: ghHeaders()});
+    if(!r.ok) return [];
+    const issue = await r.json();
+    if(issue.state !== 'open' || !tieneEtiqueta(issue, 'falso-positivo')) return [];
+    return [issue];
+  }
+  const r = await fetch(`${GH_API}/repos/${OWNER}/${REPO}/issues?labels=falso-positivo&state=open&per_page=50`, {headers: ghHeaders()});
   if(!r.ok) return [];
   return r.json();
 }
@@ -161,7 +179,7 @@ async function enviarNuevoUrlscan(domain, urlCompleta){
     if(!submit.ok) return null;
     const { api } = await submit.json();
     if(!api) return null;
-    
+
     for(let i=0;i<6;i++){
       await new Promise(res => setTimeout(res, 8000));
       const r = await fetch(api, {headers:{'API-Key': URLSCAN_KEY}});
@@ -172,7 +190,7 @@ async function enviarNuevoUrlscan(domain, urlCompleta){
 }
 
 async function consultarUrlscan(domain, urlCompleta){
-  
+
   let resultado = urlCompleta ? null : await buscarUrlscanExistente(domain);
   if(!resultado) resultado = await enviarNuevoUrlscan(domain, urlCompleta);
   if(!resultado) return {disponible:false};
@@ -499,6 +517,35 @@ async function planificar(){
         actualizacion: {title: `⏳ Pendiente de revisión: ${domain}`, labels:['reporte-dominio','revision-manual']}
       });
     }
+  }
+
+  const issuesFalsoPositivo = await listaDeIssuesFalsosPositivos();
+  for(const issue of issuesFalsoPositivo){
+    const domain = extraerDominio(issue.body);
+    if(!domain) continue;
+
+    if(!tieneAprobacionManual(issue)){
+
+      continue;
+    }
+
+    if(!setActual.has(domain)){
+      acciones.push({
+        numero: issue.number,
+        comentario: `El dominio \`${domain}\` no está (o ya no está) en la blacklist — no hay nada que quitar.`,
+        actualizacion: {state:'closed', title: `ℹ️ Ya no estaba en la lista: ${domain}`, labels:['falso-positivo','ya-resuelto']}
+      });
+      continue;
+    }
+
+    setActual.delete(domain);
+    huboCambios = true;
+    await sincronizarSupabase(`host=eq.${encodeURIComponent(domain)}`, {verdict:'safe', estado_confirmacion:'seguro'});
+    acciones.push({
+      numero: issue.number,
+      comentario: `✅ **Aprobado manualmente.** Se retira \`${domain}\` de la blacklist pública, la zona DNS RPZ, la lista de Pi-hole y el alias de firewall.`,
+      actualizacion: {state:'closed', title: `✅ Removido: ${domain}`, labels:['falso-positivo','removido']}
+    });
   }
 
   if(huboCambios || huboCambiosUrls){
