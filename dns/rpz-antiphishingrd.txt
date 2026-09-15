@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789494585 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789498713 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-15T17:49:45.224Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-15T18:58:33.901Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
@@ -47,6 +47,7 @@ pub-d21b4190a47f45628c828456f23dd66e.r2.dev CNAME .
 qqwwaa.tos-cn-hongkong.volces.com CNAME .
 quietsurfwi.help CNAME .
 ryo.gamer.free CNAME .
+samiksha.com.sg CNAME .
 scooter.cozyvistany.com CNAME .
 small-morning-8be0.fsocietyandtools.workers.dev CNAME .
 software-gateway.click CNAME .
