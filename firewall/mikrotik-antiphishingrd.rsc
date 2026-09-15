@@ -1,4 +1,4 @@
-# Script RouterOS. Generado por AntiPhishingRD (2026-09-14T17:49:15.516Z).
+# Script RouterOS. Generado por AntiPhishingRD (2026-09-15T12:50:17.086Z).
 # Importar con: /import file-name=mikrotik-antiphishingrd.rsc
 /ip dns static
 add name=02teste.cc type=A address=0.0.0.0 comment="AntiPhishingRD"
@@ -24,6 +24,7 @@ add name=curlservice.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=download.pocketbitcoindesktop.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=dropboxb3.duckdns.org type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=freeapphub.tech type=A address=0.0.0.0 comment="AntiPhishingRD"
+add name=gitea.nightcord.st type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=globalsupportupdate.top type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=icy-lab-0431.guilherme-telecomunicacoes2024.workers.dev type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=iloveboats.st type=A address=0.0.0.0 comment="AntiPhishingRD"
