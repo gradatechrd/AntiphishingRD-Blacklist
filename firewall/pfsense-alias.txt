@@ -1,5 +1,5 @@
 # Feed de dominios bloqueados para pfSense (pfBlockerNG DNSBL) y OPNsense
-# (bloqueador de dominios de Unbound). Generado por AntiPhishingRD (2026-09-15T15:48:49.234Z).
+# (bloqueador de dominios de Unbound). Generado por AntiPhishingRD (2026-09-15T15:56:12.047Z).
 02teste.cc
 0rder-ver1f2345.com
 1profitdeal.com
@@ -32,6 +32,7 @@ killurself1337-cdn.doxbin.mom
 lively-fog-af49.pablosoftwareplus.workers.dev
 loop-lumen.com
 loveher.dpdns.org
+lvdlm.buzz
 mail.avicennaalliedhealthinstitute.org
 mail.quietsurfwi.help
 nextside.cfd
