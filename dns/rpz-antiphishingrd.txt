@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789488182 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789490339 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-15T16:03:02.950Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-15T16:38:59.850Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
@@ -18,6 +18,7 @@ attach.66rpg.com CNAME .
 attach.mail.daum.net CNAME .
 banrsserrvsasresumined.royalwebhosting.net CNAME .
 beseest.com CNAME .
+brenmayasociados.com CNAME .
 buathaisushi.com CNAME .
 carlislefi.com CNAME .
 cu.srijanajha.com.np CNAME .
