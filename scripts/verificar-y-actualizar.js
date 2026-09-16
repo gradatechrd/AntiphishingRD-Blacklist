@@ -525,7 +525,30 @@ async function planificar(){
     if(!domain) continue;
 
     if(!tieneAprobacionManual(issue)){
+      
+      continue;
+    }
 
+    const esUrlExacta = esSoloUrl(issue.body);
+    const urlCompleta = extraerUrlCompleta(issue.body);
+
+    if(esUrlExacta && urlCompleta){
+      if(!urlsActuales.has(urlCompleta)){
+        acciones.push({
+          numero: issue.number,
+          comentario: `La URL \`${urlCompleta}\` no está (o ya no está) en la lista de URLs exactas — no hay nada que quitar.`,
+          actualizacion: {state:'closed', title: `ℹ️ Ya no estaba en la lista: ${domain}`, labels:['falso-positivo','ya-resuelto']}
+        });
+        continue;
+      }
+      urlsActuales.delete(urlCompleta);
+      huboCambiosUrls = true;
+      await sincronizarSupabase(`full_url=eq.${encodeURIComponent(urlCompleta)}`, {verdict:'safe', estado_confirmacion:'seguro'});
+      acciones.push({
+        numero: issue.number,
+        comentario: `✅ **Aprobado manualmente.** Se retira la URL exacta \`${urlCompleta}\` de la lista de URLs bloqueadas.`,
+        actualizacion: {state:'closed', title: `✅ Removido: ${urlCompleta}`, labels:['falso-positivo','removido']}
+      });
       continue;
     }
 
