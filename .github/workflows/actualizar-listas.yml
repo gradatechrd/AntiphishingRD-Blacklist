@@ -4,7 +4,7 @@ on:
   issues:
     types: [opened, labeled, reopened]
   schedule:
-    - cron: '*/15 * * * *'   
+    - cron: '*/15 * * * *'  
   workflow_dispatch:
     inputs:
       solo_issue:
@@ -18,7 +18,7 @@ on:
         options:
           - procesar
           - resincronizar
-          
+
 concurrency:
   group: verificar-y-publicar
   cancel-in-progress: false
@@ -35,6 +35,7 @@ jobs:
       VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
       URLSCAN_API_KEY: ${{ secrets.URLSCAN_API_KEY }}
       URLHAUS_AUTH_KEY: ${{ secrets.URLHAUS_AUTH_KEY }}
+      GOOGLE_SAFE_BROWSING_KEY: ${{ secrets.GOOGLE_SAFE_BROWSING_KEY }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       SOLO_ISSUE_NUMERO: ${{ github.event.inputs.solo_issue || (github.event.issue && github.event.issue.number) || '' }}
@@ -46,10 +47,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Importar candidatos de fuentes externas (PhishStats / Phishing.Database)
-        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.accion != 'resincronizar')
-        run: node scripts/importar-fuentes-externas.js
 
       - name: Verificar dominios, regenerar listas y publicar
         if: github.event.inputs.accion != 'resincronizar'
