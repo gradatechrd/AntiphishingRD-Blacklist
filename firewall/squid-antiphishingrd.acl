@@ -1,4 +1,4 @@
-# ACL dstdomain para Squid. Generado por AntiPhishingRD (2026-09-16T04:48:10.610Z).
+# ACL dstdomain para Squid. Generado por AntiPhishingRD (2026-09-16T04:48:29.070Z).
 # En squid.conf: acl antiphishingrd dstdomain "/ruta/a/este/archivo"
 #                http_access deny antiphishingrd
 .02teste.cc
