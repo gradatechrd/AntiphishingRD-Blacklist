@@ -1,4 +1,4 @@
-# Script RouterOS. Generado por AntiPhishingRD (2026-09-16T04:39:09.503Z).
+# Script RouterOS. Generado por AntiPhishingRD (2026-09-16T04:41:14.959Z).
 # Importar con: /import file-name=mikrotik-antiphishingrd.rsc
 /ip dns static
 add name=02teste.cc type=A address=0.0.0.0 comment="AntiPhishingRD"
@@ -20,6 +20,7 @@ add name=beseest.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=brenmayasociados.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=buathaisushi.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=carlislefi.com type=A address=0.0.0.0 comment="AntiPhishingRD"
+add name=comerzbank-secure.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=cu.srijanajha.com.np type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=curlservice.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=download.pocketbitcoindesktop.com type=A address=0.0.0.0 comment="AntiPhishingRD"
