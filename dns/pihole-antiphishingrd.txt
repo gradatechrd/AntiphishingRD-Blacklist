@@ -1,7 +1,8 @@
-# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-16T04:50:27.554Z).
+# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-16T12:47:26.083Z).
 0.0.0.0 02teste.cc
 0.0.0.0 0rder-ver1f2345.com
 0.0.0.0 1profitdeal.com
+0.0.0.0 43.156.0.130
 0.0.0.0 abilityindisabilityindia.org
 0.0.0.0 abrdokersignc.cfd
 0.0.0.0 accurateonlinelogin.top
@@ -17,6 +18,7 @@
 0.0.0.0 attach.mail.daum.net
 0.0.0.0 banrsserrvsasresumined.royalwebhosting.net
 0.0.0.0 beseest.com
+0.0.0.0 boutique-dofus.fr
 0.0.0.0 brenmayasociados.com
 0.0.0.0 buathaisushi.com
 0.0.0.0 carlislefi.com
@@ -30,11 +32,13 @@
 0.0.0.0 freeapphub.tech
 0.0.0.0 gitea.nightcord.st
 0.0.0.0 globalsupportupdate.top
+0.0.0.0 grcontestzackretsport.000webhostapp.com
 0.0.0.0 icy-lab-0431.guilherme-telecomunicacoes2024.workers.dev
 0.0.0.0 iloveboats.st
 0.0.0.0 instasocial.co
 0.0.0.0 killurself1337-cdn.doxbin.mom
 0.0.0.0 lively-fog-af49.pablosoftwareplus.workers.dev
+0.0.0.0 lokalna-oferrta19121.sbs
 0.0.0.0 loop-lumen.com
 0.0.0.0 loveher.dpdns.org
 0.0.0.0 lvdlm.buzz
@@ -46,6 +50,7 @@
 0.0.0.0 pay.aqiu6.com
 0.0.0.0 pdf-editore.com
 0.0.0.0 pdfmun.software
+0.0.0.0 plkupteraz643287467123.forum
 0.0.0.0 pub-d21b4190a47f45628c828456f23dd66e.r2.dev
 0.0.0.0 qqwwaa.tos-cn-hongkong.volces.com
 0.0.0.0 quietsurfwi.help
@@ -53,6 +58,7 @@
 0.0.0.0 samiksha.com.sg
 0.0.0.0 scooter.cozyvistany.com
 0.0.0.0 small-morning-8be0.fsocietyandtools.workers.dev
+0.0.0.0 societegeneral-securedaccount.fr
 0.0.0.0 software-gateway.click
 0.0.0.0 validacioninternacional.z13.web.core.windows.net
 0.0.0.0 vgd.vg

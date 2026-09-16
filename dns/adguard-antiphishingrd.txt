@@ -1,8 +1,9 @@
-! Lista AdGuard Home (sintaxis adblock). Generado por AntiPhishingRD (2026-09-16T04:50:27.554Z).
+! Lista AdGuard Home (sintaxis adblock). Generado por AntiPhishingRD (2026-09-16T12:47:26.083Z).
 ! Agregar en Filtros > Listas de bloqueo DNS > Agregar lista de bloqueo personalizada
 ||02teste.cc^
 ||0rder-ver1f2345.com^
 ||1profitdeal.com^
+||43.156.0.130^
 ||abilityindisabilityindia.org^
 ||abrdokersignc.cfd^
 ||accurateonlinelogin.top^
@@ -18,6 +19,7 @@
 ||attach.mail.daum.net^
 ||banrsserrvsasresumined.royalwebhosting.net^
 ||beseest.com^
+||boutique-dofus.fr^
 ||brenmayasociados.com^
 ||buathaisushi.com^
 ||carlislefi.com^
@@ -31,11 +33,13 @@
 ||freeapphub.tech^
 ||gitea.nightcord.st^
 ||globalsupportupdate.top^
+||grcontestzackretsport.000webhostapp.com^
 ||icy-lab-0431.guilherme-telecomunicacoes2024.workers.dev^
 ||iloveboats.st^
 ||instasocial.co^
 ||killurself1337-cdn.doxbin.mom^
 ||lively-fog-af49.pablosoftwareplus.workers.dev^
+||lokalna-oferrta19121.sbs^
 ||loop-lumen.com^
 ||loveher.dpdns.org^
 ||lvdlm.buzz^
@@ -47,6 +51,7 @@
 ||pay.aqiu6.com^
 ||pdf-editore.com^
 ||pdfmun.software^
+||plkupteraz643287467123.forum^
 ||pub-d21b4190a47f45628c828456f23dd66e.r2.dev^
 ||qqwwaa.tos-cn-hongkong.volces.com^
 ||quietsurfwi.help^
@@ -54,6 +59,7 @@
 ||samiksha.com.sg^
 ||scooter.cozyvistany.com^
 ||small-morning-8be0.fsocietyandtools.workers.dev^
+||societegeneral-securedaccount.fr^
 ||software-gateway.click^
 ||validacioninternacional.z13.web.core.windows.net^
 ||vgd.vg^

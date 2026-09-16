@@ -1,10 +1,11 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789534227 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789562846 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-16T04:50:27.554Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-16T12:47:26.083Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
+43.156.0.130 CNAME .
 abilityindisabilityindia.org CNAME .
 abrdokersignc.cfd CNAME .
 accurateonlinelogin.top CNAME .
@@ -20,6 +21,7 @@ attach.66rpg.com CNAME .
 attach.mail.daum.net CNAME .
 banrsserrvsasresumined.royalwebhosting.net CNAME .
 beseest.com CNAME .
+boutique-dofus.fr CNAME .
 brenmayasociados.com CNAME .
 buathaisushi.com CNAME .
 carlislefi.com CNAME .
@@ -33,11 +35,13 @@ fbetlixgee.eu CNAME .
 freeapphub.tech CNAME .
 gitea.nightcord.st CNAME .
 globalsupportupdate.top CNAME .
+grcontestzackretsport.000webhostapp.com CNAME .
 icy-lab-0431.guilherme-telecomunicacoes2024.workers.dev CNAME .
 iloveboats.st CNAME .
 instasocial.co CNAME .
 killurself1337-cdn.doxbin.mom CNAME .
 lively-fog-af49.pablosoftwareplus.workers.dev CNAME .
+lokalna-oferrta19121.sbs CNAME .
 loop-lumen.com CNAME .
 loveher.dpdns.org CNAME .
 lvdlm.buzz CNAME .
@@ -49,6 +53,7 @@ ossapp.suning.com CNAME .
 pay.aqiu6.com CNAME .
 pdf-editore.com CNAME .
 pdfmun.software CNAME .
+plkupteraz643287467123.forum CNAME .
 pub-d21b4190a47f45628c828456f23dd66e.r2.dev CNAME .
 qqwwaa.tos-cn-hongkong.volces.com CNAME .
 quietsurfwi.help CNAME .
@@ -56,6 +61,7 @@ ryo.gamer.free CNAME .
 samiksha.com.sg CNAME .
 scooter.cozyvistany.com CNAME .
 small-morning-8be0.fsocietyandtools.workers.dev CNAME .
+societegeneral-securedaccount.fr CNAME .
 software-gateway.click CNAME .
 validacioninternacional.z13.web.core.windows.net CNAME .
 vgd.vg CNAME .
