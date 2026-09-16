@@ -1,9 +1,10 @@
 # URLs exactas confirmadas como maliciosas en plataformas de hosting
 # compartido (no se bloquea el dominio completo). Generado por
-# AntiPhishingRD (2026-09-16T04:46:49.803Z). Una URL por línea.
+# AntiPhishingRD (2026-09-16T04:48:10.610Z). Una URL por línea.
 https://f110e593-4567-4db4-811b-4ffa866aa185-00-2hpprl0z5sooi.reed.replit.dev/
 https://hyeonseok067.github.io/Netflix
 https://page-instagram.vercel.app/
 https://raw.githubusercontent.com/Orukemer/successful/refs/heads/main/dpoamrI.txt
 https://res.cloudinary.com/zd8litqk/image/upload/v1788745964/img_215152.jpg
 https://saventureinfratech234-boop.github.io/saventure-facebook
+https://verifiedbadge-azex.vercel.app/
