@@ -1,4 +1,4 @@
-# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-16T04:49:05.982Z).
+# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-16T04:50:27.554Z).
 0.0.0.0 02teste.cc
 0.0.0.0 0rder-ver1f2345.com
 0.0.0.0 1profitdeal.com
@@ -42,6 +42,7 @@
 0.0.0.0 mail.quietsurfwi.help
 0.0.0.0 nextside.cfd
 0.0.0.0 office365.internal-alerts.com
+0.0.0.0 ossapp.suning.com
 0.0.0.0 pay.aqiu6.com
 0.0.0.0 pdf-editore.com
 0.0.0.0 pdfmun.software
