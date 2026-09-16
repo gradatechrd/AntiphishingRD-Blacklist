@@ -47,6 +47,10 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Importar candidatos de fuentes externas (PhishStats / Phishing.Database)
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.accion != 'resincronizar')
+        run: node scripts/importar-fuentes-externas.js
+
       - name: Verificar dominios, regenerar listas y publicar
         if: github.event.inputs.accion != 'resincronizar'
         run: |
