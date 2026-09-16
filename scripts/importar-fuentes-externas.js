@@ -1,19 +1,3 @@
-/**
- * scripts/importar-fuentes-externas.js
- *
- * Crea un Issue de GitHub (etiqueta "reporte-dominio") por cada dominio
- * nuevo encontrado en PhishStats y Phishing.Database, con el mismo
- * formato que ya usa el backend de AntiPhishingRD ("Dominio: ..." /
- * "URL analizada: ..."). NO verifica ni publica nada por sí mismo:
- * verificar-y-actualizar.js recoge esos issues en su próxima corrida y
- * los pasa por VirusTotal/urlscan.io exactamente igual que cualquier
- * otro reporte, respetando dominios de confianza, política de
- * exclusión (.do / gubernamentales) y consenso mínimo de motores.
- *
- * Uso en el workflow: correr ANTES de "node scripts/verificar-y-actualizar.js"
- * en el mismo job, para que los issues nuevos se procesen en la misma pasada.
- */
-
 const fs = require('fs');
 const path = require('path');
 
@@ -26,9 +10,6 @@ const GH_API = 'https://api.github.com';
 const { fetchPhishStatsCandidates } = require('../sources/phishstats');
 const { fetchPhishingDatabaseCandidates } = require('../sources/phishing-database');
 
-// Misma lista de exclusión de política que verificar-y-actualizar.js.
-// Si cambias una, actualiza la otra — se duplica aquí para no ejecutar
-// ese script al importarlo (tiene un IIFE que corre solo).
 function dominioExcluidoPorPolitica(domain) {
   if (/\.do$/i.test(domain)) return true;
   if (/\.gov$/i.test(domain)) return true;
@@ -55,8 +36,6 @@ function leerLista(nombreArchivo) {
   } catch (e) { return []; }
 }
 
-// Dominios que ya están publicados o que ya tienen un issue abierto —
-// para no crear duplicados en cada corrida.
 async function dominiosYaConocidos() {
   const conocidos = new Set(leerLista(CFG.archivos.blacklist));
 
@@ -115,7 +94,7 @@ async function main() {
     fetchPhishingDatabaseCandidates({ feed: 'newToday' }),
   ]);
 
-  const merged = new Map(); // domain -> Set(sources)
+  const merged = new Map();
   for (const result of [phishstatsResult, phishingDbResult]) {
     if (result.status !== 'fulfilled') {
       console.error('Una fuente externa falló:', result.reason?.message || result.reason);
@@ -137,7 +116,7 @@ async function main() {
     if (conocidos.has(domain)) continue;
     const ok = await crearIssue(domain, Array.from(sources));
     if (ok) creados++;
-    conocidos.add(domain); // evita duplicados dentro de la misma corrida
+    conocidos.add(domain);
   }
 
   console.log(`${creados} issue(s) nuevo(s) creado(s) a partir de fuentes externas.`);
