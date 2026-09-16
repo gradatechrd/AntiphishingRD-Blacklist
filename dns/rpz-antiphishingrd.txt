@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789563299 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789602585 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-16T12:54:59.466Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-16T23:49:45.504Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
