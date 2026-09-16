@@ -61,6 +61,7 @@ societegeneral-securedaccount.fr
 software-gateway.click
 validacioninternacional.z13.web.core.windows.net
 vgd.vg
+vk.ru
 vrdccbank.com
 waveplus.mediabyte.be
 web.karbordriyaziyat.xyz
