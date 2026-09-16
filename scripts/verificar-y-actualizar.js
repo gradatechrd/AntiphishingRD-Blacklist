@@ -8,6 +8,7 @@ const [OWNER, REPO] = (process.env.GITHUB_REPOSITORY || '').split('/');
 const VT_KEY = process.env.VIRUSTOTAL_API_KEY || '';
 const URLSCAN_KEY = process.env.URLSCAN_API_KEY || '';
 const URLHAUS_KEY = process.env.URLHAUS_AUTH_KEY || '';
+const GSB_KEY = process.env.GOOGLE_SAFE_BROWSING_KEY || '';
 const SOLO_ISSUE = process.env.SOLO_ISSUE_NUMERO || '';
 
 const GH_API = 'https://api.github.com';
@@ -212,6 +213,29 @@ async function consultarUrlhaus(urlCompleta){
     if(data.query_status !== 'ok') return {disponible:true, malicious:false, flagged:false, encontrado:false};
     const enLinea = data.url_status === 'online';
     return {disponible:true, malicious:true, flagged:true, encontrado:true, enLinea, amenaza: data.threat || 'malware'};
+  }catch(e){ return {disponible:false}; }
+}
+
+async function consultarGoogleSafeBrowsing(urlCompleta){
+  if(!GSB_KEY || !urlCompleta) return {disponible:false};
+  try{
+    const r = await fetch(`https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${GSB_KEY}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        client: {clientId: 'antiphishingrd', clientVersion: '1.0'},
+        threatInfo: {
+          threatTypes: ['MALWARE','SOCIAL_ENGINEERING','UNWANTED_SOFTWARE','POTENTIALLY_HARMFUL_APPLICATION'],
+          platformTypes: ['ANY_PLATFORM'],
+          threatEntryTypes: ['URL'],
+          threatEntries: [{url: urlCompleta}]
+        }
+      })
+    });
+    if(!r.ok) return {disponible:false};
+    const data = await r.json();
+    const matches = data.matches || [];
+    return {disponible:true, malicious: matches.length > 0, flagged: matches.length > 0, amenazas: matches.map(m => m.threatType)};
   }catch(e){ return {disponible:false}; }
 }
 
@@ -432,7 +456,7 @@ async function planificar(){
       }
 
       console.log(`Verificando URL exacta ${urlCompleta} (dominio de hosting compartido: ${domain})…`);
-      const [urlscan, urlhaus] = await Promise.all([consultarUrlscan(domain, urlCompleta), consultarUrlhaus(urlCompleta)]);
+      const [urlscan, urlhaus, gsb] = await Promise.all([consultarUrlscan(domain, urlCompleta), consultarUrlhaus(urlCompleta), consultarGoogleSafeBrowsing(urlCompleta)]);
       let motoresDeAcuerdo = 0;
       if(urlscan.disponible){
         console.log(`  urlscan.io: ${urlscan.malicious ? 'MALICIOSO' : 'sin indicios'} (score ${urlscan.score})`);
@@ -442,8 +466,12 @@ async function planificar(){
         console.log(`  URLhaus: ${urlhaus.encontrado ? `encontrado (${urlhaus.amenaza})` : 'sin coincidencias'}`);
         if(urlhaus.flagged) motoresDeAcuerdo++;
       }
+      if(gsb.disponible){
+        console.log(`  Google Safe Browsing: ${gsb.malicious ? `MALICIOSO (${gsb.amenazas.join(', ')})` : 'sin indicios'}`);
+        if(gsb.flagged) motoresDeAcuerdo++;
+      }
 
-      const seConfirma = motoresDeAcuerdo >= CFG.minMotoresExternosDeAcuerdo && (urlscan.disponible || urlhaus.disponible);
+      const seConfirma = motoresDeAcuerdo >= CFG.minMotoresExternosDeAcuerdo && (urlscan.disponible || urlhaus.disponible || gsb.disponible);
 
       if(seConfirma){
         urlsActuales.add(urlCompleta);
@@ -483,7 +511,7 @@ async function planificar(){
     }
 
     console.log(`Verificando ${domain}…`);
-    const [vt, urlscan] = await Promise.all([consultarVirusTotal(domain), consultarUrlscan(domain)]);
+    const [vt, urlscan, gsb] = await Promise.all([consultarVirusTotal(domain), consultarUrlscan(domain), consultarGoogleSafeBrowsing(`http://${domain}/`)]);
 
     let motoresDeAcuerdo = 0;
     if(vt.disponible){
@@ -494,8 +522,12 @@ async function planificar(){
       console.log(`  urlscan.io: ${urlscan.malicious ? 'MALICIOSO' : 'sin indicios'} (score ${urlscan.score})`);
       if(urlscan.flagged) motoresDeAcuerdo++;
     }
+    if(gsb.disponible){
+      console.log(`  Google Safe Browsing: ${gsb.malicious ? `MALICIOSO (${gsb.amenazas.join(', ')})` : 'sin indicios'}`);
+      if(gsb.flagged) motoresDeAcuerdo++;
+    }
 
-    const seConfirma = motoresDeAcuerdo >= CFG.minMotoresExternosDeAcuerdo && (vt.disponible || urlscan.disponible);
+    const seConfirma = motoresDeAcuerdo >= CFG.minMotoresExternosDeAcuerdo && (vt.disponible || urlscan.disponible || gsb.disponible);
 
     if(seConfirma){
       setActual.add(domain);
@@ -525,7 +557,7 @@ async function planificar(){
     if(!domain) continue;
 
     if(!tieneAprobacionManual(issue)){
-      
+
       continue;
     }
 
