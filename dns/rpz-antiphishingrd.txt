@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789533674 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789533776 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-16T04:41:14.959Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-16T04:42:56.412Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
@@ -10,6 +10,7 @@ abrdokersignc.cfd CNAME .
 accurateonlinelogin.top CNAME .
 activar588.royalwebhosting.net CNAME .
 adps.pro CNAME .
+allegro.912376h745.forum CNAME .
 allegrolokalnie.nr-327439sm32.lol CNAME .
 allegrolokalnie.pl74646.top CNAME .
 alphapicaficagency.com CNAME .
