@@ -1,0 +1,146 @@
+/**
+ * scripts/importar-fuentes-externas.js
+ *
+ * Crea un Issue de GitHub (etiqueta "reporte-dominio") por cada dominio
+ * nuevo encontrado en PhishStats y Phishing.Database, con el mismo
+ * formato que ya usa el backend de AntiPhishingRD ("Dominio: ..." /
+ * "URL analizada: ..."). NO verifica ni publica nada por sí mismo:
+ * verificar-y-actualizar.js recoge esos issues en su próxima corrida y
+ * los pasa por VirusTotal/urlscan.io exactamente igual que cualquier
+ * otro reporte, respetando dominios de confianza, política de
+ * exclusión (.do / gubernamentales) y consenso mínimo de motores.
+ *
+ * Uso en el workflow: correr ANTES de "node scripts/verificar-y-actualizar.js"
+ * en el mismo job, para que los issues nuevos se procesen en la misma pasada.
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const CFG = JSON.parse(fs.readFileSync(path.join(__dirname, 'consenso.config.json'), 'utf8'));
+
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const [OWNER, REPO] = (process.env.GITHUB_REPOSITORY || '').split('/');
+const GH_API = 'https://api.github.com';
+
+const { fetchPhishStatsCandidates } = require('../sources/phishstats');
+const { fetchPhishingDatabaseCandidates } = require('../sources/phishing-database');
+
+// Misma lista de exclusión de política que verificar-y-actualizar.js.
+// Si cambias una, actualiza la otra — se duplica aquí para no ejecutar
+// ese script al importarlo (tiene un IIFE que corre solo).
+function dominioExcluidoPorPolitica(domain) {
+  if (/\.do$/i.test(domain)) return true;
+  if (/\.gov$/i.test(domain)) return true;
+  if (/\.(gob|gov)\.[a-z]{2,}$/i.test(domain)) return true;
+  return false;
+}
+
+function ghHeaders() {
+  return {
+    'Authorization': `Bearer ${GITHUB_TOKEN}`,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+}
+
+function extraerDominio(body) {
+  const m = /Dominio:\s*([^\s]+)/i.exec(body || '');
+  return m ? m[1].trim().toLowerCase().replace(/[.,;]+$/, '') : null;
+}
+
+function leerLista(nombreArchivo) {
+  try {
+    return fs.readFileSync(nombreArchivo, 'utf8').split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+  } catch (e) { return []; }
+}
+
+// Dominios que ya están publicados o que ya tienen un issue abierto —
+// para no crear duplicados en cada corrida.
+async function dominiosYaConocidos() {
+  const conocidos = new Set(leerLista(CFG.archivos.blacklist));
+
+  let page = 1;
+  while (true) {
+    const r = await fetch(`${GH_API}/repos/${OWNER}/${REPO}/issues?labels=reporte-dominio&state=all&per_page=100&page=${page}`, { headers: ghHeaders() });
+    if (!r.ok) break;
+    const issues = await r.json();
+    if (!issues.length) break;
+    for (const issue of issues) {
+      const d = extraerDominio(issue.body);
+      if (d) conocidos.add(d);
+    }
+    if (issues.length < 100) break;
+    page++;
+  }
+  return conocidos;
+}
+
+async function crearIssue(domain, sources) {
+  const url = `https://${domain}/`;
+  const body = [
+    `Dominio: ${domain}`,
+    `URL analizada: ${url}`,
+    `Alcance del bloqueo: dominio-completo`,
+    '',
+    `Fuente externa: ${sources.join(', ')}`,
+    '',
+    'Reportado automáticamente por fuentes externas de threat intelligence (PhishStats / Phishing.Database), sin intervención de un visitante. El workflow de GitHub Actions verifica este dominio de forma independiente (VirusTotal/urlscan.io) antes de publicarlo.',
+  ].join('\n');
+
+  const r = await fetch(`${GH_API}/repos/${OWNER}/${REPO}/issues`, {
+    method: 'POST',
+    headers: ghHeaders(),
+    body: JSON.stringify({
+      title: `⏳ Pendiente de revisión: ${domain}`,
+      body,
+      labels: ['reporte-dominio', 'fuente-externa'],
+    }),
+  });
+  if (!r.ok) {
+    console.error(`No se pudo crear el issue para ${domain}: ${r.status}`);
+    return false;
+  }
+  return true;
+}
+
+async function main() {
+  if (!GITHUB_TOKEN || !OWNER || !REPO) {
+    console.log('Faltan credenciales de GitHub en el entorno, nada que hacer.');
+    return;
+  }
+
+  const [phishstatsResult, phishingDbResult] = await Promise.allSettled([
+    fetchPhishStatsCandidates({ limit: 200, minScore: 3 }),
+    fetchPhishingDatabaseCandidates({ feed: 'newToday' }),
+  ]);
+
+  const merged = new Map(); // domain -> Set(sources)
+  for (const result of [phishstatsResult, phishingDbResult]) {
+    if (result.status !== 'fulfilled') {
+      console.error('Una fuente externa falló:', result.reason?.message || result.reason);
+      continue;
+    }
+    for (const item of result.value) {
+      if (dominioExcluidoPorPolitica(item.domain)) continue;
+      if (!merged.has(item.domain)) merged.set(item.domain, new Set());
+      merged.get(item.domain).add(item.source);
+    }
+  }
+
+  console.log(`Candidatos únicos tras filtrar por política: ${merged.size}`);
+
+  const conocidos = await dominiosYaConocidos();
+  let creados = 0;
+
+  for (const [domain, sources] of merged.entries()) {
+    if (conocidos.has(domain)) continue;
+    const ok = await crearIssue(domain, Array.from(sources));
+    if (ok) creados++;
+    conocidos.add(domain); // evita duplicados dentro de la misma corrida
+  }
+
+  console.log(`${creados} issue(s) nuevo(s) creado(s) a partir de fuentes externas.`);
+}
+
+main().catch(err => { console.error(err); process.exit(1); });
