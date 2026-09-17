@@ -556,39 +556,68 @@ async function planificar(){
     const domain = extraerDominio(issue.body);
     if(!domain) continue;
 
-    if(!tieneAprobacionManual(issue)){
+    const esUrlExacta = esSoloUrl(issue.body);
+    const urlCompleta = extraerUrlCompleta(issue.body);
+    const enLaLista = (esUrlExacta && urlCompleta) ? urlsActuales.has(urlCompleta) : setActual.has(domain);
 
+    if(!enLaLista){
+      acciones.push({
+        numero: issue.number,
+        comentario: `${esUrlExacta && urlCompleta ? `La URL \`${urlCompleta}\`` : `El dominio \`${domain}\``} no está (o ya no está) en la lista — no hay nada que quitar.`,
+        actualizacion: {state:'closed', title: `ℹ️ Ya no estaba en la lista: ${domain}`, labels:['falso-positivo','ya-resuelto']}
+      });
       continue;
     }
 
-    const esUrlExacta = esSoloUrl(issue.body);
-    const urlCompleta = extraerUrlCompleta(issue.body);
+    const aprobadoManual = tieneAprobacionManual(issue);
+    let sePuedeRemover = aprobadoManual;
+    let motivoAutomatico = '';
 
-    if(esUrlExacta && urlCompleta){
-      if(!urlsActuales.has(urlCompleta)){
+    if(!aprobadoManual){
+      console.log(`Re-verificando falso positivo: ${esUrlExacta && urlCompleta ? urlCompleta : domain}…`);
+      let resultados;
+      if(esUrlExacta && urlCompleta){
+        const [urlscan, urlhaus, gsb] = await Promise.all([consultarUrlscan(domain, urlCompleta), consultarUrlhaus(urlCompleta), consultarGoogleSafeBrowsing(urlCompleta)]);
+        resultados = [urlscan, urlhaus, gsb];
+      }else{
+        const [vt, urlscan, gsb] = await Promise.all([consultarVirusTotal(domain), consultarUrlscan(domain), consultarGoogleSafeBrowsing(`http://${domain}/`)]);
+        resultados = [vt, urlscan, gsb];
+      }
+      const disponibles = resultados.filter(r => r.disponible);
+      const siguenMarcandolo = disponibles.filter(r => r.flagged);
+
+      if(disponibles.length > 0 && siguenMarcandolo.length === 0){
+        sePuedeRemover = true;
+        motivoAutomatico = `🔎 **Confirmado de forma independiente.** Los ${disponibles.length} motor(es) externo(s) consultado(s) de nuevo ya no lo marcan como malicioso.`;
+      }else if(disponibles.length > 0){
         acciones.push({
           numero: issue.number,
-          comentario: `La URL \`${urlCompleta}\` no está (o ya no está) en la lista de URLs exactas — no hay nada que quitar.`,
-          actualizacion: {state:'closed', title: `ℹ️ Ya no estaba en la lista: ${domain}`, labels:['falso-positivo','ya-resuelto']}
+          comentario: [
+            `⏳ **No se remueve automáticamente todavía.** Al re-verificar, ${siguenMarcandolo.length} de ${disponibles.length} motor(es) externo(s) consultado(s) sigue(n) marcando esto como malicioso.`,
+            '',
+            'Este reporte queda abierto para revisión manual. Si estás seguro de que es un falso positivo, agrega la etiqueta `aprobado-manual` (o `confirmado`) a este issue para forzar la remoción en la próxima ejecución, sin depender de las fuentes externas.'
+          ].join('\n'),
+          actualizacion: {title: `⏳ Pendiente de revisión: ${domain}`, labels:['falso-positivo','revision-manual']}
         });
         continue;
+      }else{
+
+        continue;
       }
+    }
+
+    if(!sePuedeRemover) continue;
+
+    const comentarioAprobacion = aprobadoManual ? '✅ **Aprobado manualmente.**' : motivoAutomatico;
+
+    if(esUrlExacta && urlCompleta){
       urlsActuales.delete(urlCompleta);
       huboCambiosUrls = true;
       await sincronizarSupabase(`full_url=eq.${encodeURIComponent(urlCompleta)}`, {verdict:'safe', estado_confirmacion:'seguro'});
       acciones.push({
         numero: issue.number,
-        comentario: `✅ **Aprobado manualmente.** Se retira la URL exacta \`${urlCompleta}\` de la lista de URLs bloqueadas.`,
+        comentario: `${comentarioAprobacion} Se retira la URL exacta \`${urlCompleta}\` de la lista de URLs bloqueadas.`,
         actualizacion: {state:'closed', title: `✅ Removido: ${urlCompleta}`, labels:['falso-positivo','removido']}
-      });
-      continue;
-    }
-
-    if(!setActual.has(domain)){
-      acciones.push({
-        numero: issue.number,
-        comentario: `El dominio \`${domain}\` no está (o ya no está) en la blacklist — no hay nada que quitar.`,
-        actualizacion: {state:'closed', title: `ℹ️ Ya no estaba en la lista: ${domain}`, labels:['falso-positivo','ya-resuelto']}
       });
       continue;
     }
@@ -598,7 +627,7 @@ async function planificar(){
     await sincronizarSupabase(`host=eq.${encodeURIComponent(domain)}`, {verdict:'safe', estado_confirmacion:'seguro'});
     acciones.push({
       numero: issue.number,
-      comentario: `✅ **Aprobado manualmente.** Se retira \`${domain}\` de la blacklist pública, la zona DNS RPZ, la lista de Pi-hole y el alias de firewall.`,
+      comentario: `${comentarioAprobacion} Se retira \`${domain}\` de la blacklist pública, la zona DNS RPZ, la lista de Pi-hole y el alias de firewall.`,
       actualizacion: {state:'closed', title: `✅ Removido: ${domain}`, labels:['falso-positivo','removido']}
     });
   }
