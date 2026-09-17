@@ -1,6 +1,6 @@
 # URLs exactas confirmadas como maliciosas en plataformas de hosting
 # compartido (no se bloquea el dominio completo). Generado por
-# AntiPhishingRD (2026-09-17T00:28:20.622Z). Una URL por línea.
+# AntiPhishingRD (2026-09-17T00:28:48.383Z). Una URL por línea.
 https://bhd-aqui-acceso-2026.weebly.com/
 https://du2z24s5vh1es076.s3.us-east-2.amazonaws.com/[OCULTO]/gtyulxne0oj.html
 https://f110e593-4567-4db4-811b-4ffa866aa185-00-2hpprl0z5sooi.reed.replit.dev/
