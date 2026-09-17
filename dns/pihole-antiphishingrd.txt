@@ -1,4 +1,4 @@
-# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-17T04:39:53.986Z).
+# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-17T20:48:00.811Z).
 0.0.0.0 02teste.cc
 0.0.0.0 0rder-ver1f2345.com
 0.0.0.0 1profitdeal.com
@@ -76,6 +76,7 @@
 0.0.0.0 vrdccbank.com
 0.0.0.0 waveplus.mediabyte.be
 0.0.0.0 web.karbordriyaziyat.xyz
+0.0.0.0 windomstatetheater.com
 0.0.0.0 www.abelmomaroc.com
 0.0.0.0 www.okhan.net
 0.0.0.0 www2.0zz0.com
