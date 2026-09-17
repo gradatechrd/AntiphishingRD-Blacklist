@@ -9,6 +9,7 @@ const GH_API = 'https://api.github.com';
 
 const { fetchPhishStatsCandidates } = require('../sources/phishstats');
 const { fetchPhishingDatabaseCandidates } = require('../sources/phishing-database');
+const { fetchCertificateTransparencyCandidates } = require('../sources/certificate-transparency');
 
 function dominioExcluidoPorPolitica(domain) {
   if (/\.do$/i.test(domain)) return true;
@@ -57,6 +58,7 @@ async function dominiosYaConocidos() {
 
 async function crearIssue(domain, sources) {
   const url = `https://${domain}/`;
+  const esMonitoreoDeMarca = sources.some(s => s.startsWith('certificate-transparency:'));
   const body = [
     `Dominio: ${domain}`,
     `URL analizada: ${url}`,
@@ -64,8 +66,13 @@ async function crearIssue(domain, sources) {
     '',
     `Fuente externa: ${sources.join(', ')}`,
     '',
-    'Reportado automáticamente por fuentes externas de threat intelligence (PhishStats / Phishing.Database), sin intervención de un visitante. El workflow de GitHub Actions verifica este dominio de forma independiente (VirusTotal/urlscan.io) antes de publicarlo.',
+    esMonitoreoDeMarca
+      ? 'Detectado por monitoreo proactivo de certificados SSL (Certificate Transparency): se emitió un certificado nuevo para un dominio que contiene el nombre de una marca vigilada. Esto NO significa que sea malicioso — muchos resultados serán legítimos (la propia marca, revendedores, fans, prensa). El workflow lo verifica de forma independiente (VirusTotal/urlscan.io/Google Safe Browsing) antes de considerar publicarlo.'
+      : 'Reportado automáticamente por fuentes externas de threat intelligence (PhishStats / Phishing.Database), sin intervención de un visitante. El workflow de GitHub Actions verifica este dominio de forma independiente (VirusTotal/urlscan.io) antes de publicarlo.',
   ].join('\n');
+
+  const labels = ['reporte-dominio', 'fuente-externa'];
+  if (esMonitoreoDeMarca) labels.push('monitoreo-marca');
 
   const r = await fetch(`${GH_API}/repos/${OWNER}/${REPO}/issues`, {
     method: 'POST',
@@ -73,7 +80,7 @@ async function crearIssue(domain, sources) {
     body: JSON.stringify({
       title: `⏳ Pendiente de revisión: ${domain}`,
       body,
-      labels: ['reporte-dominio', 'fuente-externa'],
+      labels,
     }),
   });
   if (!r.ok) {
@@ -89,13 +96,14 @@ async function main() {
     return;
   }
 
-  const [phishstatsResult, phishingDbResult] = await Promise.allSettled([
+  const [phishstatsResult, phishingDbResult, ctResult] = await Promise.allSettled([
     fetchPhishStatsCandidates({ limit: 200, minScore: 3 }),
     fetchPhishingDatabaseCandidates({ feed: 'newToday' }),
+    fetchCertificateTransparencyCandidates({ maxHorasAntiguedad: 26 }),
   ]);
 
   const merged = new Map();
-  for (const result of [phishstatsResult, phishingDbResult]) {
+  for (const result of [phishstatsResult, phishingDbResult, ctResult]) {
     if (result.status !== 'fulfilled') {
       console.error('Una fuente externa falló:', result.reason?.message || result.reason);
       continue;
