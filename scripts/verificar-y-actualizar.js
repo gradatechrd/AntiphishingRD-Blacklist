@@ -150,6 +150,16 @@ function debeEsperarCooldown(issue){
   return horasTranscurridas < HORAS_COOLDOWN_REVISION;
 }
 
+const DIAS_PARA_DESCARTAR = (CFG.diasParaDescartarSinConfirmar != null) ? CFG.diasParaDescartarSinConfirmar : 7;
+function llevaDemasiadoTiempoSinConfirmar(issue){
+  if(!tieneEtiqueta(issue, 'revision-manual')) return false;
+  if(tieneAprobacionManual(issue)) return false;
+  const creado = new Date(issue.created_at).getTime();
+  if(Number.isNaN(creado)) return false;
+  const diasTranscurridos = (Date.now() - creado) / (1000 * 60 * 60 * 24);
+  return diasTranscurridos >= DIAS_PARA_DESCARTAR;
+}
+
 async function consultarVirusTotal(domain){
   if(!VT_KEY) return {disponible:false};
   try{
@@ -418,6 +428,19 @@ async function planificar(){
     const soloUrl = esSoloUrl(issue.body) || !!esHostingCompartido(domain);
     const urlCompleta = extraerUrlCompleta(issue.body);
 
+    if(llevaDemasiadoTiempoSinConfirmar(issue)){
+      acciones.push({
+        numero: issue.number,
+        comentario: [
+          `❌ **Descartado por falta de confirmación.** Han pasado ${DIAS_PARA_DESCARTAR} días desde este reporte y ningún motor externo lo confirmó como malicioso.`,
+          '',
+          `No se agregó a la blacklist. Si aparece nueva evidencia de que ${soloUrl && urlCompleta ? urlCompleta : domain} es malicioso, repórtalo de nuevo o reabre este issue y agrégale la etiqueta \`aprobado-manual\` para forzar su publicación.`
+        ].join('\n'),
+        actualizacion: {state:'closed', title: `❌ Descartado (sin confirmar): ${domain}`, labels:['reporte-dominio','descartado']}
+      });
+      continue;
+    }
+
     if(tieneAprobacionManual(issue)){
       if(soloUrl){
         if(!urlCompleta){
@@ -588,6 +611,20 @@ async function planificar(){
         numero: issue.number,
         comentario: `${esUrlExacta && urlCompleta ? `La URL \`${urlCompleta}\`` : `El dominio \`${domain}\``} no está (o ya no está) en la lista — no hay nada que quitar.`,
         actualizacion: {state:'closed', title: `ℹ️ Ya no estaba en la lista: ${domain}`, labels:['falso-positivo','ya-resuelto']}
+      });
+      continue;
+    }
+
+    if(llevaDemasiadoTiempoSinConfirmar(issue)){
+      const identificador = esUrlExacta && urlCompleta ? urlCompleta : domain;
+      acciones.push({
+        numero: issue.number,
+        comentario: [
+          `❌ **Descartado por falta de confirmación.** Han pasado ${DIAS_PARA_DESCARTAR} días desde este reporte de falso positivo y al menos un motor externo sigue marcando \`${identificador}\` como malicioso.`,
+          '',
+          `Por precaución, \`${identificador}\` **sigue bloqueado**. Si estás seguro de que es un falso positivo, reabre este issue y agrégale la etiqueta \`aprobado-manual\` para forzar la remoción.`
+        ].join('\n'),
+        actualizacion: {state:'closed', title: `❌ Descartado (sigue bloqueado): ${identificador}`, labels:['falso-positivo','descartado']}
       });
       continue;
     }
