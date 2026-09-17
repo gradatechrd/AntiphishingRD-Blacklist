@@ -1,5 +1,5 @@
 # Feed de dominios bloqueados para pfSense (pfBlockerNG DNSBL) y OPNsense
-# (bloqueador de dominios de Unbound). Generado por AntiPhishingRD (2026-09-17T21:11:21.301Z).
+# (bloqueador de dominios de Unbound). Generado por AntiPhishingRD (2026-09-17T22:44:25.113Z).
 02teste.cc
 0rder-ver1f2345.com
 1profitdeal.com
@@ -70,6 +70,7 @@ sdufkghdfshds.cfd
 small-morning-8be0.fsocietyandtools.workers.dev
 societegeneral-securedaccount.fr
 software-gateway.click
+users.atw.hu
 validacioninternacional.z13.web.core.windows.net
 vgd.vg
 vizyonuniversitesi.web.tr
