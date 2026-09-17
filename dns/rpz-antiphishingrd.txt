@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789605489 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789605655 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-17T00:38:09.528Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-17T00:40:55.590Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
@@ -66,6 +66,7 @@ societegeneral-securedaccount.fr CNAME .
 software-gateway.click CNAME .
 validacioninternacional.z13.web.core.windows.net CNAME .
 vgd.vg CNAME .
+vizyonuniversitesi.web.tr CNAME .
 vk.ru CNAME .
 vrdccbank.com CNAME .
 waveplus.mediabyte.be CNAME .
