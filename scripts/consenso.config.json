@@ -1,6 +1,7 @@
 {
   "_comentario": "Mantén estos valores iguales a la sección 'consensus' de config.js del sitio. Se usan en el workflow de GitHub Actions para decidir si un dominio reportado se confirma y se publica automáticamente.",
   "minMotoresExternosDeAcuerdo": 1,
+  "horasCooldownRevision": 2,
   "virusTotal": {
     "minMotoresMaliciosos": 3
   },
