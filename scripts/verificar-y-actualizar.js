@@ -470,8 +470,12 @@ async function planificar(){
       }
 
       console.log(`Verificando URL exacta ${urlCompleta} (dominio de hosting compartido: ${domain})…`);
-      const [urlscan, urlhaus, gsb] = await Promise.all([consultarUrlscan(domain, urlCompleta), consultarUrlhaus(urlCompleta), consultarGoogleSafeBrowsing(urlCompleta)]);
+      const [vt, urlscan, urlhaus, gsb] = await Promise.all([consultarVirusTotal(domain), consultarUrlscan(domain, urlCompleta), consultarUrlhaus(urlCompleta), consultarGoogleSafeBrowsing(urlCompleta)]);
       let motoresDeAcuerdo = 0;
+      if(vt.disponible){
+        console.log(`  VirusTotal: ${vt.malicious}/${vt.total} motores lo marcan malicioso`);
+        if(vt.flagged) motoresDeAcuerdo++;
+      }
       if(urlscan.disponible){
         console.log(`  urlscan.io: ${urlscan.malicious ? 'MALICIOSO' : 'sin indicios'} (score ${urlscan.score})`);
         if(urlscan.flagged) motoresDeAcuerdo++;
@@ -485,7 +489,7 @@ async function planificar(){
         if(gsb.flagged) motoresDeAcuerdo++;
       }
 
-      const seConfirma = motoresDeAcuerdo >= CFG.minMotoresExternosDeAcuerdo && (urlscan.disponible || urlhaus.disponible || gsb.disponible);
+      const seConfirma = motoresDeAcuerdo >= CFG.minMotoresExternosDeAcuerdo && (vt.disponible || urlscan.disponible || urlhaus.disponible || gsb.disponible);
 
       if(seConfirma){
         urlsActuales.add(urlCompleta);
@@ -600,8 +604,8 @@ async function planificar(){
       console.log(`Re-verificando falso positivo: ${esUrlExacta && urlCompleta ? urlCompleta : domain}…`);
       let resultados;
       if(esUrlExacta && urlCompleta){
-        const [urlscan, urlhaus, gsb] = await Promise.all([consultarUrlscan(domain, urlCompleta), consultarUrlhaus(urlCompleta), consultarGoogleSafeBrowsing(urlCompleta)]);
-        resultados = [urlscan, urlhaus, gsb];
+        const [vt, urlscan, urlhaus, gsb] = await Promise.all([consultarVirusTotal(domain), consultarUrlscan(domain, urlCompleta), consultarUrlhaus(urlCompleta), consultarGoogleSafeBrowsing(urlCompleta)]);
+        resultados = [vt, urlscan, urlhaus, gsb];
       }else{
         const [vt, urlscan, gsb] = await Promise.all([consultarVirusTotal(domain), consultarUrlscan(domain), consultarGoogleSafeBrowsing(`http://${domain}/`)]);
         resultados = [vt, urlscan, gsb];
