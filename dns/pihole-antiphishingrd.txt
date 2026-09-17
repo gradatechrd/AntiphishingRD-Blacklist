@@ -1,4 +1,4 @@
-# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-17T00:40:55.590Z).
+# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-17T02:46:53.691Z).
 0.0.0.0 02teste.cc
 0.0.0.0 0rder-ver1f2345.com
 0.0.0.0 1profitdeal.com
@@ -58,6 +58,7 @@
 0.0.0.0 ryo.gamer.free
 0.0.0.0 samiksha.com.sg
 0.0.0.0 scooter.cozyvistany.com
+0.0.0.0 sdufkghdfshds.cfd
 0.0.0.0 small-morning-8be0.fsocietyandtools.workers.dev
 0.0.0.0 societegeneral-securedaccount.fr
 0.0.0.0 software-gateway.click
