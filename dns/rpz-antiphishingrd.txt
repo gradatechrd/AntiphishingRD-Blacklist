@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789617101 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789617615 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-17T03:51:41.256Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-17T04:00:15.587Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
@@ -36,6 +36,7 @@ euob.youstarsbuilding.com CNAME .
 fb1.verify-bluecheck.cfd CNAME .
 fbetlixgee.eu CNAME .
 freeapphub.tech CNAME .
+gestionycobranzas.com CNAME .
 gitea.nightcord.st CNAME .
 globalsupportupdate.top CNAME .
 grcontestzackretsport.000webhostapp.com CNAME .

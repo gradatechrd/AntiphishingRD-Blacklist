@@ -1,4 +1,4 @@
-# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-17T03:51:41.256Z).
+# Lista Pi-hole (formato hosts). Generado por AntiPhishingRD (2026-09-17T04:00:15.587Z).
 0.0.0.0 02teste.cc
 0.0.0.0 0rder-ver1f2345.com
 0.0.0.0 1profitdeal.com
@@ -33,6 +33,7 @@
 0.0.0.0 fb1.verify-bluecheck.cfd
 0.0.0.0 fbetlixgee.eu
 0.0.0.0 freeapphub.tech
+0.0.0.0 gestionycobranzas.com
 0.0.0.0 gitea.nightcord.st
 0.0.0.0 globalsupportupdate.top
 0.0.0.0 grcontestzackretsport.000webhostapp.com
