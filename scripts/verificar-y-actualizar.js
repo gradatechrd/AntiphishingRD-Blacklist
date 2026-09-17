@@ -141,6 +141,15 @@ function tieneAprobacionManual(issue){
   return nombres.includes('aprobado-manual') || nombres.includes('confirmado');
 }
 
+const HORAS_COOLDOWN_REVISION = (CFG.horasCooldownRevision != null) ? CFG.horasCooldownRevision : 2;
+function debeEsperarCooldown(issue){
+  if(!tieneEtiqueta(issue, 'revision-manual')) return false;
+  const ultimaActualizacion = new Date(issue.updated_at).getTime();
+  if(Number.isNaN(ultimaActualizacion)) return false;
+  const horasTranscurridas = (Date.now() - ultimaActualizacion) / (1000 * 60 * 60);
+  return horasTranscurridas < HORAS_COOLDOWN_REVISION;
+}
+
 async function consultarVirusTotal(domain){
   if(!VT_KEY) return {disponible:false};
   try{
@@ -455,6 +464,11 @@ async function planificar(){
         continue;
       }
 
+      if(debeEsperarCooldown(issue)){
+        console.log(`  En espera (cooldown de ${HORAS_COOLDOWN_REVISION}h) antes de volver a verificar ${urlCompleta}.`);
+        continue;
+      }
+
       console.log(`Verificando URL exacta ${urlCompleta} (dominio de hosting compartido: ${domain})…`);
       const [urlscan, urlhaus, gsb] = await Promise.all([consultarUrlscan(domain, urlCompleta), consultarUrlhaus(urlCompleta), consultarGoogleSafeBrowsing(urlCompleta)]);
       let motoresDeAcuerdo = 0;
@@ -507,6 +521,11 @@ async function planificar(){
         comentario: `El dominio \`${domain}\` ya está publicado en la blacklist, no se requiere ninguna acción adicional.`,
         actualizacion: {state:'closed', title: `✅ Ya publicado: ${domain}`, labels:['reporte-dominio','ya-publicado']}
       });
+      continue;
+    }
+
+    if(debeEsperarCooldown(issue)){
+      console.log(`  En espera (cooldown de ${HORAS_COOLDOWN_REVISION}h) antes de volver a verificar ${domain}.`);
       continue;
     }
 
@@ -574,6 +593,10 @@ async function planificar(){
     let motivoAutomatico = '';
 
     if(!aprobadoManual){
+      if(debeEsperarCooldown(issue)){
+        console.log(`  En espera (cooldown de ${HORAS_COOLDOWN_REVISION}h) antes de volver a re-verificar ${esUrlExacta && urlCompleta ? urlCompleta : domain}.`);
+        continue;
+      }
       console.log(`Re-verificando falso positivo: ${esUrlExacta && urlCompleta ? urlCompleta : domain}…`);
       let resultados;
       if(esUrlExacta && urlCompleta){
