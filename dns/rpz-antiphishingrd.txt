@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789617615 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789618749 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-17T04:00:15.587Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-17T04:19:09.432Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
@@ -81,4 +81,5 @@ web.karbordriyaziyat.xyz CNAME .
 www.abelmomaroc.com CNAME .
 www.okhan.net CNAME .
 xeno.lat CNAME .
+xshop.com.tr CNAME .
 zycdjz.com CNAME .
