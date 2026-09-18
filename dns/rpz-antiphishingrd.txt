@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789697133 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789742267 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-18T02:05:33.727Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-18T14:37:47.312Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
@@ -60,6 +60,7 @@ pay.aqiu6.com CNAME .
 pdf-editore.com CNAME .
 pdfmun.software CNAME .
 plkupteraz643287467123.forum CNAME .
+post-info-swiss.com CNAME .
 prepstarcenter.com CNAME .
 pub-d21b4190a47f45628c828456f23dd66e.r2.dev CNAME .
 qqwwaa.tos-cn-hongkong.volces.com CNAME .
