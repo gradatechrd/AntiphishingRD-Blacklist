@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1789685065 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1789697133 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-17T22:44:25.113Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-18T02:05:33.727Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
@@ -41,6 +41,7 @@ gestionycobranzas.com CNAME .
 gitea.nightcord.st CNAME .
 globalsupportupdate.top CNAME .
 grcontestzackretsport.000webhostapp.com CNAME .
+hasalltalent.com CNAME .
 icy-lab-0431.guilherme-telecomunicacoes2024.workers.dev CNAME .
 iloveboats.st CNAME .
 instasocial.co CNAME .
