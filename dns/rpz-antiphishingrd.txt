@@ -5,7 +5,6 @@ $TTL 300
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
-43.156.0.130 CNAME .
 abilityindisabilityindia.org CNAME .
 abrdokersignc.cfd CNAME .
 accurateonlinelogin.top CNAME .
