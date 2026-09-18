@@ -1,8 +1,9 @@
 # URLs exactas confirmadas como maliciosas en plataformas de hosting
 # compartido (no se bloquea el dominio completo). Generado por
-# AntiPhishingRD (2026-09-18T14:37:47.312Z). Una URL por línea.
+# AntiPhishingRD (2026-09-18T14:38:44.053Z). Una URL por línea.
 https://bhd-aqui-acceso-2026.weebly.com/
 https://f110e593-4567-4db4-811b-4ffa866aa185-00-2hpprl0z5sooi.reed.replit.dev/
+https://him-transsfer.vercel.app/
 https://hyeonseok067.github.io/Netflix
 https://k7ra3f4a0rha6x.s3.eu-west-1.amazonaws.com/6hdkay6bu911nrdc6/2jdg2a18uei.html
 https://new-click-app-99.surge.sh/
