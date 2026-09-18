@@ -1,6 +1,6 @@
 # AntiphishingRD Blacklist
 
-Repositorio de código abierto dedicado a recopilar, verificar y mantener un registro actualizado de dominios, URLs y recursos maliciosos utilizados en campañas de phishing e ingeniería social dirigidas a usuarios en la República Dominicana.
+Repositorio dedicado a recopilar, verificar y mantener un registro actualizado de dominios, URLs y recursos maliciosos utilizados en campañas de phishing e ingeniería social dirigidas a usuarios en la República Dominicana.
 
 ## Características
 - **Monitoreo Localizado:** Enfoque en amenazas y dominios fraudulentos que imitan marcas, instituciones y servicios populares en el país.
