@@ -1,5 +1,5 @@
 # Feed de dominios bloqueados para pfSense (pfBlockerNG DNSBL) y OPNsense
-# (bloqueador de dominios de Unbound). Generado por AntiPhishingRD (2026-09-18T14:47:56.738Z).
+# (bloqueador de dominios de Unbound). Generado por AntiPhishingRD (2026-09-19T17:59:06.773Z).
 02teste.cc
 0rder-ver1f2345.com
 1profitdeal.com
@@ -23,6 +23,7 @@ boutique-dofus.fr
 brenmayasociados.com
 buathaisushi.com
 carlislefi.com
+claro-do.top
 comerzbank-secure.com
 cu.srijanajha.com.np
 curlservice.com
