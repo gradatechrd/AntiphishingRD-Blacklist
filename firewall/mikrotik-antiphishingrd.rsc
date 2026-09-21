@@ -1,4 +1,4 @@
-# Script RouterOS. Generado por AntiPhishingRD (2026-09-21T19:06:00.071Z).
+# Script RouterOS. Generado por AntiPhishingRD (2026-09-21T23:39:54.584Z).
 # Importar con: /import file-name=mikrotik-antiphishingrd.rsc
 /ip dns static
 add name=02teste.cc type=A address=0.0.0.0 comment="AntiPhishingRD"
@@ -46,6 +46,7 @@ add name=icy-lab-0431.guilherme-telecomunicacoes2024.workers.dev type=A address=
 add name=iloveboats.st type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=instasocial.co type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=killurself1337-cdn.doxbin.mom type=A address=0.0.0.0 comment="AntiPhishingRD"
+add name=lahlou.docu462589.pro type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=lively-fog-af49.pablosoftwareplus.workers.dev type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=lokalna-oferrta19121.sbs type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=loop-lumen.com type=A address=0.0.0.0 comment="AntiPhishingRD"
