@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1790346583 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1790365012 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-25T14:29:43.661Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-25T19:36:52.792Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
@@ -27,6 +27,7 @@ buathaisushi.com CNAME .
 carlislefi.com CNAME .
 claro-do.top CNAME .
 clarooo.top CNAME .
+cnc.strikec2.wtf CNAME .
 comerzbank-secure.com CNAME .
 cu.srijanajha.com.np CNAME .
 curlservice.com CNAME .

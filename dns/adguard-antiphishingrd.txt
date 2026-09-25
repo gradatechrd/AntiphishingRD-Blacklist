@@ -1,4 +1,4 @@
-! Lista AdGuard Home (sintaxis adblock). Generado por AntiPhishingRD (2026-09-25T14:29:43.661Z).
+! Lista AdGuard Home (sintaxis adblock). Generado por AntiPhishingRD (2026-09-25T19:36:52.792Z).
 ! Agregar en Filtros > Listas de bloqueo DNS > Agregar lista de bloqueo personalizada
 ||02teste.cc^
 ||0rder-ver1f2345.com^
@@ -25,6 +25,7 @@
 ||carlislefi.com^
 ||claro-do.top^
 ||clarooo.top^
+||cnc.strikec2.wtf^
 ||comerzbank-secure.com^
 ||cu.srijanajha.com.np^
 ||curlservice.com^
