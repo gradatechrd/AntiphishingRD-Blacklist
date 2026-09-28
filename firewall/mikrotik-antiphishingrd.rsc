@@ -1,4 +1,4 @@
-# Script RouterOS. Generado por AntiPhishingRD (2026-09-25T19:36:52.792Z).
+# Script RouterOS. Generado por AntiPhishingRD (2026-09-28T12:49:56.639Z).
 # Importar con: /import file-name=mikrotik-antiphishingrd.rsc
 /ip dns static
 add name=02teste.cc type=A address=0.0.0.0 comment="AntiPhishingRD"
@@ -38,6 +38,7 @@ add name=euob.youstarsbuilding.com type=A address=0.0.0.0 comment="AntiPhishingR
 add name=fb1.verify-bluecheck.cfd type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=fbetlixgee.eu type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=freeapphub.tech type=A address=0.0.0.0 comment="AntiPhishingRD"
+add name=frtraito.it.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=gestionycobranzas.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=gitea.nightcord.st type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=globalsupportupdate.top type=A address=0.0.0.0 comment="AntiPhishingRD"
