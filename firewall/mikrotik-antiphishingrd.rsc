@@ -1,4 +1,4 @@
-# Script RouterOS. Generado por AntiPhishingRD (2026-09-29T14:04:08.644Z).
+# Script RouterOS. Generado por AntiPhishingRD (2026-09-29T22:55:55.772Z).
 # Importar con: /import file-name=mikrotik-antiphishingrd.rsc
 /ip dns static
 add name=02teste.cc type=A address=0.0.0.0 comment="AntiPhishingRD"
@@ -79,6 +79,7 @@ add name=sdufkghdfshds.cfd type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=small-morning-8be0.fsocietyandtools.workers.dev type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=societegeneral-securedaccount.fr type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=software-gateway.click type=A address=0.0.0.0 comment="AntiPhishingRD"
+add name=superats.top type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=users.atw.hu type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=validacioninternacional.z13.web.core.windows.net type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=vgd.vg type=A address=0.0.0.0 comment="AntiPhishingRD"
