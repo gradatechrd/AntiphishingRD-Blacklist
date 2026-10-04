@@ -1,7 +1,7 @@
 $TTL 300
-@ SOA localhost. admin.localhost. (1790722555 3600 600 86400 300)
+@ SOA localhost. admin.localhost. (1791140880 3600 600 86400 300)
   NS  localhost.
-; Zona RPZ generada automaticamente por AntiPhishingRD (2026-09-29T22:55:55.772Z). No editar a mano.
+; Zona RPZ generada automaticamente por AntiPhishingRD (2026-10-04T19:08:00.347Z). No editar a mano.
 02teste.cc CNAME .
 0rder-ver1f2345.com CNAME .
 1profitdeal.com CNAME .
@@ -93,6 +93,7 @@ windomstatetheater.com CNAME .
 www.abelmomaroc.com CNAME .
 www.geway.ru CNAME .
 www.okhan.net CNAME .
+www.regetauschmehrenz.com CNAME .
 www.silver-hubdachwohnwagen.de CNAME .
 www2.0zz0.com CNAME .
 xeno.lat CNAME .

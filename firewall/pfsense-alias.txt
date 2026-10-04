@@ -1,5 +1,5 @@
 # Feed de dominios bloqueados para pfSense (pfBlockerNG DNSBL) y OPNsense
-# (bloqueador de dominios de Unbound). Generado por AntiPhishingRD (2026-09-29T22:55:55.772Z).
+# (bloqueador de dominios de Unbound). Generado por AntiPhishingRD (2026-10-04T19:08:00.347Z).
 02teste.cc
 0rder-ver1f2345.com
 1profitdeal.com
@@ -91,6 +91,7 @@ windomstatetheater.com
 www.abelmomaroc.com
 www.geway.ru
 www.okhan.net
+www.regetauschmehrenz.com
 www.silver-hubdachwohnwagen.de
 www2.0zz0.com
 xeno.lat
