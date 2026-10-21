@@ -1,4 +1,4 @@
-# Script RouterOS. Generado por AntiPhishingRD (2026-10-08T16:53:44.541Z).
+# Script RouterOS. Generado por AntiPhishingRD (2026-10-21T18:33:35.357Z).
 # Importar con: /import file-name=mikrotik-antiphishingrd.rsc
 /ip dns static
 add name=02teste.cc type=A address=0.0.0.0 comment="AntiPhishingRD"
@@ -14,6 +14,7 @@ add name=allegrolokalnie.nr-327439sm32.lol type=A address=0.0.0.0 comment="AntiP
 add name=allegrolokalnie.pl74646.top type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=alphapicaficagency.com type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=altice.cfd type=A address=0.0.0.0 comment="AntiPhishingRD"
+add name=altllvce.eu.cc type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=api.cdn22.net type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=app.cliente30horas.pro type=A address=0.0.0.0 comment="AntiPhishingRD"
 add name=areyouready.co.za type=A address=0.0.0.0 comment="AntiPhishingRD"
